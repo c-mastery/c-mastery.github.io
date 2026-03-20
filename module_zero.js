@@ -161,6 +161,266 @@ const ModuleZero = {
                 }
             ]
         }
+    ],
+
+    quiz: [
+        {
+            question: "What is the primary job of a compiler?",
+            options: ["Run your code line by line", "Translate your source code into machine code all at once", "Check your grammar and spelling", "Manage your computer's memory"],
+            answer: 1
+        },
+        {
+            question: "Why do computers use binary (base 2) instead of base 10?",
+            options: ["Base 10 is too slow for math", "Binary was invented first", "Transistors are physical on/off switches with only two stable states", "It uses less storage space"],
+            answer: 2
+        },
+        {
+            question: "How many values can a single byte represent?",
+            options: ["8", "16", "128", "256"],
+            answer: 3
+        },
+        {
+            question: "Which statement best describes an interpreter?",
+            options: ["Translates all code before running it", "Translates and executes code line-by-line at runtime", "Compresses code to make it smaller", "Links library code into your program"],
+            answer: 1
+        },
+        {
+            question: "Who created the C programming language?",
+            options: ["Linus Torvalds", "Brian Kernighan", "Dennis Ritchie", "Ken Thompson"],
+            answer: 2
+        },
+        {
+            question: "What does the C preprocessor do with #include directives?",
+            options: ["Imports a module at runtime", "Links a compiled library", "Literally copy-pastes the header file content into your source file", "Downloads the library from the internet"],
+            answer: 2
+        },
+        {
+            question: "What is a 'bit'?",
+            options: ["8 bytes of data", "A single 0 or 1 value", "A unit of processor speed", "A type of memory address"],
+            answer: 1
+        },
+        {
+            question: "What was C's 'killer application' that made it spread globally?",
+            options: ["Microsoft Windows", "The original web browser", "Rewriting the Unix operating system in C", "The first video game console"],
+            answer: 2
+        },
+        {
+            question: "Which is a key advantage of compiled languages over interpreted ones?",
+            options: ["Faster to write", "Errors are only caught at runtime", "Resulting programs run much faster", "No need for a build step"],
+            answer: 2
+        },
+        {
+            question: "Where does C sit in the spectrum of programming languages?",
+            options: ["It is a high-level language like Python", "It is a low-level language like Assembly", "It is a mid-level language between Assembly and modern high-level languages", "It is a scripting language"],
+            answer: 2
+        }
+    ],
+
+    practice: [
+        {
+            title: "Hello, Binary World",
+            difficulty: "easy",
+            problem: "Write a C program that declares the same integer value three different ways (decimal 247, hex 0xF7, and binary 0b11110111) and prints all three using %d to prove they are identical.",
+            hint: "Declare three separate int variables with the three different literal formats and print each with printf using %d.",
+            solution: `#include <stdio.h>
+
+int main() {
+    int decimal = 247;
+    int hex     = 0xF7;
+    int binary  = 0b11110111;
+
+    printf("Decimal literal: %d\\n", decimal);
+    printf("Hex literal:     %d\\n", hex);
+    printf("Binary literal:  %d\\n", binary);
+
+    return 0;
+}`
+        },
+        {
+            title: "Bit and Byte Counter",
+            difficulty: "easy",
+            problem: "Write a program that takes a number of bytes as an integer input from the user and prints how many bits that equals (multiply by 8). Then print the number of unique values that many bytes can hold (hint: 1 byte = 256 values, 2 bytes = 65536, and so on — use a loop to multiply 256 by itself 'bytes' times).",
+            hint: "Use scanf to read the byte count. Calculate bits = bytes * 8. For the number of values, declare a long long result = 1 and multiply it by 256 in a loop that runs 'bytes' times.",
+            solution: `#include <stdio.h>
+
+int main() {
+    int bytes;
+    printf("Enter number of bytes (1-4): ");
+    scanf("%d", &bytes);
+
+    int bits = bytes * 8;
+
+    long long values = 1;
+    for (int i = 0; i < bytes; i++) {
+        values *= 256;
+    }
+
+    printf("%d byte(s) = %d bits\\n", bytes, bits);
+    printf("Possible unique values: %lld\\n", values);
+
+    return 0;
+}`
+        },
+        {
+            title: "Compiler vs Interpreter Classifier",
+            difficulty: "medium",
+            problem: "Write a program that asks the user to enter a number from 1 to 4 representing a language (1=C, 2=Python, 3=Java, 4=JavaScript) and prints whether it is primarily compiled, interpreted, or JIT-compiled, along with one key characteristic of that execution model.",
+            hint: "Use a series of if/else if statements checking the user's integer input. Print a two-line response for each case.",
+            solution: `#include <stdio.h>
+
+int main() {
+    int choice;
+    printf("Select a language:\\n");
+    printf("  1) C\\n  2) Python\\n  3) Java\\n  4) JavaScript\\n");
+    printf("Your choice: ");
+    scanf("%d", &choice);
+
+    if (choice == 1) {
+        printf("C -> Compiled.\\n");
+        printf("Characteristic: Fastest execution; errors caught before the program ever runs.\\n");
+    } else if (choice == 2) {
+        printf("Python -> Interpreted.\\n");
+        printf("Characteristic: Easiest to write; runtime errors can hide in untested branches.\\n");
+    } else if (choice == 3) {
+        printf("Java -> JIT-Compiled (bytecode).\\n");
+        printf("Characteristic: Compiled to bytecode first, then JIT-compiled at runtime.\\n");
+    } else if (choice == 4) {
+        printf("JavaScript -> JIT-Compiled.\\n");
+        printf("Characteristic: Interpreted at first, then JIT-compiled in hot paths by the engine.\\n");
+    } else {
+        printf("Invalid choice. Enter 1 to 4.\\n");
+    }
+
+    return 0;
+}`
+        },
+        {
+            title: "C Standards Timeline",
+            difficulty: "medium",
+            problem: "Write a program that asks the user for a year and tells them which C standard was the most recent at that time. Use these milestones: before 1989 = K&R C, 1989-1998 = C89, 1999-2010 = C99, 2011-2016 = C11, 2017-2022 = C17, 2023 onward = C23.",
+            hint: "Compare the input year using if/else if chains with the boundary years listed in the problem.",
+            solution: `#include <stdio.h>
+
+int main() {
+    int year;
+    printf("Enter a year: ");
+    scanf("%d", &year);
+
+    if (year < 1989) {
+        printf("Year %d: K&R C era — the original, pre-standardization dialect.\\n", year);
+    } else if (year < 1999) {
+        printf("Year %d: C89 (ANSI C) — the first official standard.\\n", year);
+    } else if (year < 2011) {
+        printf("Year %d: C99 — added bool, inline functions, and variable-length arrays.\\n", year);
+    } else if (year < 2017) {
+        printf("Year %d: C11 — added threads, atomics, and _Generic.\\n", year);
+    } else if (year < 2023) {
+        printf("Year %d: C17 — a bug-fix release with no major new features.\\n", year);
+    } else {
+        printf("Year %d: C23 — added constexpr, nullptr, binary literals, and more.\\n", year);
+    }
+
+    return 0;
+}`
+        },
+        {
+            title: "Number Base Inspector",
+            difficulty: "hard",
+            problem: "Write a program that reads an integer (0-255) from the user and prints it in four representations: decimal, uppercase hexadecimal (with 0x prefix), octal (with 0 prefix), and binary. For binary, loop from bit 7 down to bit 0 and use the bitwise AND operator to extract each bit.",
+            hint: "For the binary output: use a for loop from i=7 down to i=0, and inside the loop print (n >> i) & 1. This right-shifts n by i positions then masks the lowest bit.",
+            solution: `#include <stdio.h>
+
+int main() {
+    int n;
+    printf("Enter an integer (0-255): ");
+    scanf("%d", &n);
+
+    printf("Decimal:     %d\\n", n);
+    printf("Hexadecimal: 0x%X\\n", n);
+    printf("Octal:       0%o\\n", n);
+
+    printf("Binary:      ");
+    for (int i = 7; i >= 0; i--) {
+        printf("%d", (n >> i) & 1);
+    }
+    printf("\\n");
+
+    return 0;
+}`
+        }
+    ],
+
+    exam: [
+        {
+            question: "What are the only two physical states a transistor can reliably represent?",
+            options: ["High voltage and low voltage", "On and Off (0 and 1)", "Positive and negative charge", "Signal and noise"],
+            answer: 1
+        },
+        {
+            question: "In what year was the C language created?",
+            options: ["1965", "1972", "1978", "1983"],
+            answer: 1
+        },
+        {
+            question: "What is hexadecimal primarily used for in C programming?",
+            options: ["Faster arithmetic calculations", "Storing floating point numbers", "Representing binary patterns and memory addresses compactly", "Encrypting data"],
+            answer: 2
+        },
+        {
+            question: "Which of these is a defining property of a compiled language?",
+            options: ["Code is translated and run one line at a time", "Errors are only found when that line executes", "All code is translated to machine code before execution begins", "Requires an interpreter installed on the target machine"],
+            answer: 2
+        },
+        {
+            question: "1 kilobyte is equal to how many bytes?",
+            options: ["1,000", "1,024", "1,048", "2,048"],
+            answer: 1
+        },
+        {
+            question: "What is the linking step in C compilation responsible for?",
+            options: ["Converting C source code to assembly", "Resolving #include directives", "Stitching your machine code together with external library code to form a complete executable", "Optimizing for processor speed"],
+            answer: 2
+        },
+        {
+            question: "Which property of C made Unix the first portable operating system?",
+            options: ["C code compiles to the same binary on every machine", "C source code could be recompiled for different hardware architectures", "C has a built-in virtual machine", "C programs run inside an interpreter"],
+            answer: 1
+        },
+        {
+            question: "What is 'abstraction' in the context of programming languages?",
+            options: ["Making code more complex and verbose", "Hiding low-level hardware details so programmers can express intent at a higher level", "Compressing source code to reduce file size", "Using comments to explain code"],
+            answer: 1
+        },
+        {
+            question: "What is the key trade-off of JIT (Just-In-Time) compilation?",
+            options: ["Very fast startup but slow peak performance", "It attempts to combine compiled speed with interpreted flexibility, but typically consumes large amounts of RAM", "It produces the smallest possible executables", "It eliminates all runtime errors"],
+            answer: 1
+        },
+        {
+            question: "Why is C described as 'unforgiving'?",
+            options: ["It has no standard library", "Its syntax is impossible to learn", "It does not protect you from your own mistakes — it assumes you know exactly what you are doing", "It only runs on Unix systems"],
+            answer: 2
+        },
+        {
+            question: "What does the preprocessor do before actual C compilation starts?",
+            options: ["Optimizes your code for speed", "Processes # directives — e.g., copy-pasting header file contents in place of #include lines", "Converts C code to assembly", "Checks for memory leaks"],
+            answer: 1
+        },
+        {
+            question: "The landmark book 'The C Programming Language' by Kernighan and Ritchie was published in which year?",
+            options: ["1972", "1975", "1978", "1989"],
+            answer: 2
+        },
+        {
+            question: "Which statement about error detection is TRUE?",
+            options: ["Compilers catch errors at runtime", "Interpreters catch all errors before execution", "Compiled languages catch most errors at compile time; interpreted languages may only surface errors when the bad line actually runs", "Both compilers and interpreters catch errors identically"],
+            answer: 2
+        },
+        {
+            question: "How many bits are in one byte?",
+            options: ["4", "8", "16", "32"],
+            answer: 1
+        }
     ]
 };
 
