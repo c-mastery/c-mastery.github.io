@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C Programming Mastery</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-icon">&lt;/&gt;</span>
+                    <span class="logo-text">C Mastery</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                    <span></span>
+                </button>
+            </div>
+            
+            <div class="progress-overview">
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="overallProgress"></div>
+                </div>
+                <span class="progress-text" id="progressText">0% Complete</span>
+            </div>
+            
+            <div class="nav-modules" id="navModules">
+                <!-- Dynamically populated -->
+            </div>
+        </nav>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <button class="menu-btn" id="menuBtn" aria-label="Open menu">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <div class="breadcrumb" id="breadcrumb">Dashboard</div>
+                <div class="top-actions">
+                    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                        <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg>
+                        <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+            
+            <div class="content-area" id="contentArea">
+                <!-- Dashboard View -->
+                <div class="view dashboard-view" id="dashboardView">
+                    <h1 class="page-title">Master C Programming</h1>
+                    <p class="page-subtitle">From absolute beginner to low-level expert. Complete curriculum with interactive lessons, practice, and assessments.</p>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="statCompleted">0</div>
+                            <div class="stat-label">Lessons Completed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statQuizzes">0</div>
+                            <div class="stat-label">Quizzes Passed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statAvgScore">0%</div>
+                            <div class="stat-label">Average Score</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statStreak">0</div>
+                            <div class="stat-label">Day Streak</div>
+                        </div>
+                    </div>
+                    
+                    <div class="modules-overview" id="modulesOverview">
+                        <!-- Dynamically populated -->
+                    </div>
+                    
+                    <div class="quick-actions">
+                        <button class="action-btn primary" id="continueBtn">Continue Learning</button>
+                        <button class="action-btn secondary" id="resetBtn">Reset Progress</button>
+                    </div>
+                </div>
+                
+                <!-- Lesson View -->
+                <div class="view lesson-view hidden" id="lessonView">
+                    <div class="lesson-header">
+                        <span class="lesson-badge" id="lessonBadge">Beginner</span>
+                        <h1 class="lesson-title" id="lessonTitle">Lesson Title</h1>
+                    </div>
+                    
+                    <div class="lesson-content" id="lessonContent">
+                        <!-- Dynamically populated -->
+                    </div>
+                    
+                    <div class="lesson-nav">
+                        <button class="nav-btn prev" id="prevLesson">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="15,18 9,12 15,6"></polyline>
+                            </svg>
+                            Previous
+                        </button>
+                        <button class="mark-complete" id="markComplete">Mark Complete</button>
+                        <button class="nav-btn next" id="nextLesson">
+                            Next
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="9,6 15,12 9,18"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Practice View -->
+                <div class="view practice-view hidden" id="practiceView">
+                    <div class="practice-header">
+                        <h1 class="practice-title" id="practiceTitle">Practice Problems</h1>
+                        <span class="practice-module" id="practiceModule">Module Name</span>
+                    </div>
+                    
+                    <div class="practice-list" id="practiceList">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+                
+                <!-- Quiz View -->
+                <div class="view quiz-view hidden" id="quizView">
+                    <div class="quiz-header">
+                        <h1 class="quiz-title" id="quizTitle">Module Quiz</h1>
+                        <div class="quiz-progress">
+                            <span id="quizProgress">Question 1 of 5</span>
+                        </div>
+                    </div>
+                    
+                    <div class="quiz-content" id="quizContent">
+                        <!-- Dynamically populated -->
+                    </div>
+                    
+                    <div class="quiz-nav hidden" id="quizNav">
+                        <button class="nav-btn prev" id="prevQuestion">Previous</button>
+                        <button class="nav-btn next" id="nextQuestion">Next</button>
+                        <button class="action-btn primary hidden" id="submitQuiz">Submit Quiz</button>
+                    </div>
+                    
+                    <div class="quiz-results hidden" id="quizResults">
+                        <!-- Results shown here -->
+                    </div>
+                </div>
+                
+                <!-- Exam View -->
+                <div class="view exam-view hidden" id="examView">
+                    <div class="exam-header">
+                        <h1 class="exam-title" id="examTitle">Module Exam</h1>
+                        <div class="exam-info">
+                            <span id="examInfo">10 Questions | No Time Limit</span>
+                        </div>
+                    </div>
+                    
+                    <div class="exam-content" id="examContent">
+                        <!-- Dynamically populated -->
+                    </div>
+                    
+                    <div class="exam-results hidden" id="examResults">
+                        <!-- Results shown here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Code Runner Modal -->
+    <div class="modal hidden" id="codeModal">
+        <div class="modal-backdrop" id="modalBackdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Code Editor</h2>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <textarea class="code-editor" id="codeEditor" spellcheck="false"></textarea>
+                <div class="editor-actions">
+                    <button class="action-btn primary" id="runCode">Run Code</button>
+                    <button class="action-btn secondary" id="resetCode">Reset</button>
+                </div>
+                <div class="output-container">
+                    <div class="output-label">Simulated Output:</div>
+                    <pre class="output-area" id="outputArea">// Output will appear here</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="module_beginner.js"></script>
+    <script src="module_early_intermediate.js"></script>
+    <script src="module_intermediate.js"></script>
+    <script src="module_lowlevel.js"></script>
+    <script src="module_advanced.js"></script>
+    <script src="module_expert.js"></script>
+    <script src="module_extra.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
