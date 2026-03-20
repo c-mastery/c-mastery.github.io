@@ -32,11 +32,8 @@ Upon returning to the website, users are automatically routed back to their last
 The content includes detailed coverage of the C23 standard, including topics often omitted from traditional courses:
 
    - Type-generic programming using generic selection.
-
    - Modern keywords and attributes such as constexpr, nullptr, and nodiscard.
-
    - Multithreading and memory alignment.
-
    - Non-local jumps and advanced memory management.
 
 4. Technical Architecture Stack
