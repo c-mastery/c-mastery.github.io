@@ -1,4 +1,4 @@
-const ModuleExtra = {
+const ModuleExpert = {
     description: "The gaps: type casting, command-line arguments, const correctness, how loops work under the hood, atomics, and the standard library functions you'll actually use. Everything the main curriculum didn't have room for.",
 
     lessons: [
@@ -1323,4 +1323,4 @@ int main() {
     ]
 };
 
-window.ModuleExtra = ModuleExtra;
+window.ModuleExpert = ModuleExpert;
