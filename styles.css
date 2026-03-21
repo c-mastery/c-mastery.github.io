@@ -516,12 +516,19 @@ a:hover { color: var(--accent-dim); }
     display: inline;
 }
 
-/* ===== Donate Button ===== */
-.donate-btn {
+/* ===== Donate Button + Flyout ===== */
+.donate-wrapper {
+    position: relative;
     display: flex;
     align-items: center;
+    flex-shrink: 0;
+}
+
+.donate-btn {
+    display: inline-flex;
+    align-items: center;
     gap: 6px;
-    padding: 7px 14px;
+    padding: 7px 13px;
     border-radius: var(--radius-sm);
     color: #fff;
     text-decoration: none;
@@ -533,6 +540,7 @@ a:hover { color: var(--accent-dim); }
     transition: all var(--transition-fast);
     white-space: nowrap;
     box-shadow: 0 2px 8px rgba(224, 93, 158, 0.3);
+    line-height: 1;
 }
 
 .donate-btn:hover {
@@ -542,23 +550,170 @@ a:hover { color: var(--accent-dim); }
 }
 
 .donate-btn svg {
-    animation: heartbeat 1.4s ease infinite;
+    animation: heartbeat 1.6s ease infinite;
+    flex-shrink: 0;
 }
 
 @keyframes heartbeat {
     0%, 100% { transform: scale(1); }
-    14%       { transform: scale(1.25); }
+    14%       { transform: scale(1.3); }
     28%       { transform: scale(1); }
-    42%       { transform: scale(1.15); }
+    42%       { transform: scale(1.2); }
     56%       { transform: scale(1); }
 }
 
-/* Hide GitHub label on small screens */
+/* Flyout panel */
+.donate-flyout {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 340px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    padding: 16px;
+    z-index: 200;
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.donate-flyout.open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: all;
+}
+
+.flyout-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.flyout-sub {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 14px;
+}
+
+.crypto-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.crypto-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.crypto-item:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-light);
+}
+
+.crypto-item.copied {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+}
+
+.crypto-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0;
+}
+
+.crypto-icon.btc  { background: rgba(247,147,26,0.15); color: #f7931a; }
+.crypto-icon.eth  { background: rgba(98,126,234,0.15);  color: #627eea; }
+.crypto-icon.sol  { background: rgba(153,69,255,0.15);  color: #9945ff; }
+.crypto-icon.usdt { background: rgba(38,161,123,0.15);  color: #26a17b; }
+
+.crypto-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.crypto-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.crypto-ticker {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-left: 4px;
+}
+
+.crypto-address {
+    font-size: 0.68rem;
+    color: var(--text-secondary);
+    font-family: 'Courier New', monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.copy-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    transition: all var(--transition-fast);
+}
+
+.copy-btn:hover {
+    background: var(--bg-hover);
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.crypto-item.copied .copy-btn {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.flyout-thanks {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 14px;
+}
+
+.hidden { display: none !important; }
+
 @media (max-width: 640px) {
-    .github-label { display: none; }
-    .github-link  { padding: 7px 10px; }
-    .donate-btn   { padding: 7px 10px; }
     .donate-btn span { display: none; }
+    .donate-btn { padding: 7px 10px; }
+    .donate-flyout { width: calc(100vw - 32px); right: -8px; }
 }
 
 /* ===== Theme Toggle ===== */

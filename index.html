@@ -46,6 +46,98 @@
                 </button>
                 <div class="breadcrumb" id="breadcrumb">Dashboard</div>
                 <div class="top-actions">
+                    <!-- GitHub Link -->
+                    <a class="github-link" href="https://github.com/YOUR_USERNAME/YOUR_REPO" target="_blank" rel="noopener noreferrer" aria-label="View source on GitHub">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                        <span class="github-label">Source</span>
+                    </a>
+
+                    <!-- Donate Button + Flyout -->
+                    <div class="donate-wrapper" id="donateWrapper">
+                        <button class="donate-btn" id="donateBtn" aria-haspopup="true" aria-expanded="false" aria-label="Support this project">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402C1 3.518 3.318 1 6 1c1.814 0 3.491 1.047 4.5 2.726C11.509 2.047 13.186 1 15 1c2.682 0 5 2.518 5 6.191 0 4.104-5.369 8.862-11 14.402z"/>
+                            </svg>
+                            Donate
+                        </button>
+
+                        <div class="donate-flyout" id="donateFlyout" role="dialog" aria-label="Crypto donation addresses">
+                            <div class="flyout-header">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="color:#f97316">
+                                    <path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402C1 3.518 3.318 1 6 1c1.814 0 3.491 1.047 4.5 2.726C11.509 2.047 13.186 1 15 1c2.682 0 5 2.518 5 6.191 0 4.104-5.369 8.862-11 14.402z"/>
+                                </svg>
+                                <span>Support This Project</span>
+                            </div>
+                            <p class="flyout-sub">Send crypto to any address below. Click to copy.</p>
+
+                            <div class="crypto-list">
+                                <!-- Bitcoin -->
+                                <div class="crypto-item" data-address="bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" data-coin="Bitcoin">
+                                    <div class="crypto-icon btc">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23.638 14.904c-1.602 6.43-8.113 10.34-14.542 8.736C2.67 22.05-1.244 15.525.362 9.105 1.962 2.67 8.475-1.243 14.9.358c6.43 1.605 10.342 8.115 8.738 14.546z"/></svg>
+                                    </div>
+                                    <div class="crypto-info">
+                                        <span class="crypto-name">Bitcoin <span class="crypto-ticker">BTC</span></span>
+                                        <span class="crypto-address">bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh</span>
+                                    </div>
+                                    <button class="copy-btn" aria-label="Copy Bitcoin address">
+                                        <svg class="copy-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                        <svg class="check-icon hidden" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+                                    </button>
+                                </div>
+
+                                <!-- Ethereum -->
+                                <div class="crypto-item" data-address="0x71C7656EC7ab88b098defB751B7401B5f6d8976F" data-coin="Ethereum">
+                                    <div class="crypto-icon eth">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 17.97L4.58 13.62 11.943 24l7.37-10.38-7.372 4.35h.003zM12.056 0L4.69 12.223l7.365 4.354 7.365-4.35L12.056 0z"/></svg>
+                                    </div>
+                                    <div class="crypto-info">
+                                        <span class="crypto-name">Ethereum <span class="crypto-ticker">ETH</span></span>
+                                        <span class="crypto-address">0x71C7656EC7ab88b098defB751B7401B5f6d8976F</span>
+                                    </div>
+                                    <button class="copy-btn" aria-label="Copy Ethereum address">
+                                        <svg class="copy-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                        <svg class="check-icon hidden" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+                                    </button>
+                                </div>
+
+                                <!-- Solana -->
+                                <div class="crypto-item" data-address="So11111111111111111111111111111111111111112" data-coin="Solana">
+                                    <div class="crypto-icon sol">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M4.01 16.38L6.13 14h13.86l-2.12 2.38H4.01zm0-8.76L6.13 10h13.86L17.87 7.62H4.01zm0 4.38L6.13 14h13.86l-2.12-2H4.01z"/></svg>
+                                    </div>
+                                    <div class="crypto-info">
+                                        <span class="crypto-name">Solana <span class="crypto-ticker">SOL</span></span>
+                                        <span class="crypto-address">So11111111111111111111111111111111111111112</span>
+                                    </div>
+                                    <button class="copy-btn" aria-label="Copy Solana address">
+                                        <svg class="copy-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                        <svg class="check-icon hidden" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+                                    </button>
+                                </div>
+
+                                <!-- USDT -->
+                                <div class="crypto-item" data-address="TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9" data-coin="USDT (TRC-20)">
+                                    <div class="crypto-icon usdt">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 0h-11L0 6.5V8h2v14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8h2V6.5L17.5 0zM12 18a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>
+                                    </div>
+                                    <div class="crypto-info">
+                                        <span class="crypto-name">Tether <span class="crypto-ticker">USDT</span></span>
+                                        <span class="crypto-address">TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9</span>
+                                    </div>
+                                    <button class="copy-btn" aria-label="Copy USDT address">
+                                        <svg class="copy-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                        <svg class="check-icon hidden" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <p class="flyout-thanks">Thank you for your support! 🙏</p>
+                        </div>
+                    </div>
+
                     <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
                         <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="5"></circle>
@@ -64,12 +156,7 @@
                     </button>
                 </div>
             </header>
-            <a class="donate-btn" href="https://github.com/sponsors/YOUR_USERNAME" target="_blank" rel="noopener noreferrer" aria-label="Support this project">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402C1 3.518 3.318 1 6 1c1.814 0 3.491 1.047 4.5 2.726C11.509 2.047 13.186 1 15 1c2.682 0 5 2.518 5 6.191 0 4.104-5.369 8.862-11 14.402z"/>
-                        </svg>
-                        Donate
-            </a>
+            
             <div class="content-area" id="contentArea">
                 <!-- Dashboard View -->
                 <div class="view dashboard-view" id="dashboardView">
@@ -231,5 +318,53 @@
     <script src="module_expert.js"></script>
     <script src="module_extra.js"></script>
     <script src="script.js"></script>
+    <!-- Donate Flyout Script -->
+    <script>
+    (function() {
+        const wrapper  = document.getElementById('donateWrapper');
+        const btn      = document.getElementById('donateBtn');
+        const flyout   = document.getElementById('donateFlyout');
+
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const open = flyout.classList.toggle('open');
+            btn.setAttribute('aria-expanded', open);
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!wrapper.contains(e.target)) {
+                flyout.classList.remove('open');
+                btn.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                flyout.classList.remove('open');
+                btn.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        flyout.querySelectorAll('.crypto-item').forEach(function(item) {
+            item.querySelector('.copy-btn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                const address   = item.dataset.address;
+                const copyIcon  = this.querySelector('.copy-icon');
+                const checkIcon = this.querySelector('.check-icon');
+
+                navigator.clipboard.writeText(address).then(function() {
+                    copyIcon.classList.add('hidden');
+                    checkIcon.classList.remove('hidden');
+                    item.classList.add('copied');
+                    setTimeout(function() {
+                        copyIcon.classList.remove('hidden');
+                        checkIcon.classList.add('hidden');
+                        item.classList.remove('copied');
+                    }, 2000);
+                });
+            });
+        });
+    })();
+    </script>
 </body>
 </html>
