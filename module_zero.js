@@ -70,7 +70,7 @@ const ModuleZero = {
                         "<strong>Hexadecimal shorthand:</strong> 11110111 in binary is F7 in hex. It's strictly used because humans are lazy and typing 8 digits is tedious.", //
                         "Now look at this code, and press the \"Edit and Run\" button, then edit the code to any decimal, binary and hexadecimal number your guts want. Don't worry if the code breaks, nothing teaches you faster than hands-on experience, especially errors! And also don't worry if you don't understand a thing here. Just use common sense to figure out!" //
                     ],
-                    code: `// In C, you can write binary, decimal, and hexadecimal literals:\nint decimal = 247;      // Base-10\nint hex = 0xF7;         // Hexadecimal (base 16)\nint binary = 0b11110111; // Binary (base 2)\n\nprintf("They are all exactly the same: %d, %d, %d\\n", decimal, hex, binary);\n// Output: They are all exactly the same: 247, 247, 247` //
+                    code: `#include <stdio.h>\n\n// In C, you can write binary, decimal, and hexadecimal literals:\nint decimal = 247;      // Base-10\nint hex = 0xF7;         // Hexadecimal (base 16)\nint binary = 0b11110111; // Binary (base 2)\n\nprintf("They are all exactly the same: %d, %d, %d\\n", decimal, hex, binary);\n// Output: They are all exactly the same: 247, 247, 247` //
                 }
             ]
         },
