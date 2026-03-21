@@ -16,7 +16,8 @@ int main() {
     printf("Hello, World!\\n");
     return 0;
 }`,
-                    output: "Hello, World!"
+                    output: "Hello, World!",
+                    warning: "Never read stdio.h as 'studio.h'. It's 'standard input/output', not 'studio'. Read that again. S T D I O. (std for standard, io for input/output). Even humans may understand why you would read that as studio, but compiler will not. Better be careful."
                 },
                 {
                     title: "Line-by-Line Explanation",
