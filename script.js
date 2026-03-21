@@ -84,7 +84,12 @@ window.addEventListener('load', () => {
 function loadProgress() {
     const saved = localStorage.getItem('cMasteryProgress');
     if (saved) {
-        App.progress = JSON.parse(saved);
+        try {
+            App.progress = JSON.parse(saved);
+        } catch (e) {
+            console.error('Failed to parse progress data', e);
+            localStorage.removeItem('cMasteryProgress');
+        }
         // Backfill keys added after initial release so old saves don't break
         if (!App.progress.attemptedProblems) App.progress.attemptedProblems = [];
         if (!App.progress.quizScores)        App.progress.quizScores = {};
