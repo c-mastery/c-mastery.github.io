@@ -116,6 +116,92 @@ int main() {
 }`,
                     output: "INT_MAX:   2147483647\nINT_MIN:   -2147483648\nUINT_MAX:  4294967295\nLLONG_MAX: 9223372036854775807\nCHAR_MAX:  127\nCannot add: would overflow",
                     tip: "The <code>&lt;float.h&gt;</code> header provides the equivalent for floating-point types: <code>FLT_MAX</code>, <code>DBL_MAX</code>, <code>FLT_EPSILON</code> (the smallest float difference from 1.0), and <code>DBL_EPSILON</code>. <code>DBL_EPSILON</code> is especially useful for float comparisons: instead of <code>a == b</code> (unreliable), use <code>fabs(a - b) < DBL_EPSILON</code>."
+                },
+                {
+                    title: "Two's Complement: How Signed Integers Actually Work",
+                    content: "You know that signed integers can hold negative values. But how does the CPU physically store -1 in the same 32 bits it uses for positive numbers? The answer is two's complement — the encoding scheme used by virtually every modern CPU. Understanding it explains overflow behavior, bitwise operations on negative numbers, and why mixing signed and unsigned types is dangerous.",
+                    points: [
+                        "<strong>The encoding rule:</strong> For a positive number, two's complement is just normal binary. For a negative number, flip every bit (bitwise NOT) and add 1. That's it. <code>-1</code> in 8-bit two's complement: start with 00000001, flip to 11111110, add 1 → 11111111. So <code>-1</code> is stored as all 1-bits.",
+                        "<strong>Why this is clever:</strong> Addition works identically for both positive and negative numbers with no special cases in hardware. <code>5 + (-3)</code> in binary just works out to <code>2</code> using normal binary addition rules. The CPU needs only one adder circuit for both cases.",
+                        "<strong>The sign bit:</strong> The most significant bit is the sign bit. If it's 1, the value is negative. If 0, positive. This is why signed types have asymmetric ranges — <code>int8_t</code> goes from -128 to 127, not -127 to 127.",
+                        "<strong>The asymmetry trap:</strong> <code>INT_MIN</code> has no positive equivalent. On a 32-bit int, <code>-(-2147483648)</code> is undefined behavior — there is no positive 2147483648 in a 32-bit signed integer. The negation overflows."
+                    ],
+                    code: `#include <stdio.h>
+#include <stdint.h>
+ 
+int main() {
+    int8_t pos =  5;   // Binary: 00000101
+    int8_t neg = -5;   // Binary: 11111011  (flip 00000101 → 11111010, +1 → 11111011)
+ 
+    printf("pos = %d,  bits: ", pos);
+    for (int i = 7; i >= 0; i--) printf("%d", (pos >> i) & 1);
+    printf("\\n");
+ 
+    printf("neg = %d, bits: ", neg);
+    for (int i = 7; i >= 0; i--) printf("%d", ((uint8_t)neg >> i) & 1);
+    printf("\\n");
+ 
+    // -1 is all 1-bits in two's complement
+    int8_t minus_one = -1;
+    printf("-1 as hex:  0x%02X\\n", (uint8_t)minus_one); // 0xFF
+ 
+    // Adding wraps correctly: 127 + 1 overflows to -128 (UB for signed, defined for unsigned)
+    uint8_t u = 255;
+    u++;
+    printf("255u + 1 = %u\\n", u); // 0 — wraps around
+ 
+    // Why ~5 == -6: flip all bits of 00000101 → 11111010 = -6 in two's complement
+    int x = 5;
+    printf("~5 = %d\\n", ~x); // -6
+ 
+    return 0;
+}`,
+                    output: "pos =  5,  bits: 00000101\nneg = -5, bits: 11111011\n-1 as hex:  0xFF\n255u + 1 = 0\n~5 = -6"
+                },
+                {
+                    title: "IEEE 754: How Floating-Point Numbers Are Stored",
+                    content: "Floats don't work like integers. They can't represent every decimal value exactly, they have a limited precision range, and operations that look mathematically identical can produce different results. These aren't bugs in your code or the compiler — they follow directly from the IEEE 754 standard, which defines how every float and double is physically stored. Understanding the format explains every surprising float behavior you will ever encounter.",
+                    points: [
+                        "<strong>The format:</strong> A 32-bit <code>float</code> has three fields packed into its 32 bits: 1 sign bit, 8 exponent bits, and 23 mantissa (fraction) bits. A 64-bit <code>double</code> has 1 sign bit, 11 exponent bits, and 52 mantissa bits. The value is computed as: <code>(-1)^sign × 2^(exponent-127) × 1.mantissa</code>",
+                        "<strong>Why 0.1 + 0.2 ≠ 0.3:</strong> 0.1 in binary is a repeating fraction — like 1/3 in decimal. It cannot be stored exactly in a finite number of bits. The stored value is the closest representable approximation. Add two approximations and the rounding errors accumulate, giving you 0.30000000000000004 instead of 0.3.",
+                        "<strong>Special values:</strong> IEEE 754 reserves bit patterns for <code>Infinity</code> (exponent all 1s, mantissa 0) and <code>NaN</code> — Not a Number (exponent all 1s, non-zero mantissa). <code>NaN</code> is produced by operations like <code>0.0/0.0</code> or <code>sqrt(-1.0)</code>. Any comparison with <code>NaN</code> returns false — even <code>nan == nan</code> is false.",
+                        "<strong>Never compare floats with ==:</strong> Due to rounding, two calculations that should produce the same result often differ by a tiny amount. Use <code>fabs(a - b) < epsilon</code> with a suitably small epsilon instead. <code>DBL_EPSILON</code> from <code>&lt;float.h&gt;</code> is the smallest difference between 1.0 and the next representable double."
+                    ],
+                    code: `#include <stdio.h>
+#include <math.h>
+#include <float.h>
+#include <stdint.h>
+ 
+int main() {
+    // 0.1 + 0.2 is NOT 0.3 in floating point
+    double a = 0.1, b = 0.2;
+    printf("0.1 + 0.2 = %.17f\\n", a + b);   // Not exactly 0.3
+    printf("== 0.3?   %s\\n", (a + b == 0.3) ? "yes" : "no"); // no
+ 
+    // Correct float comparison using epsilon
+    printf("approx ==? %s\\n", fabs((a+b) - 0.3) < DBL_EPSILON ? "yes" : "no");
+ 
+    // Special values
+    double inf  =  1.0 / 0.0;
+    double ninf = -1.0 / 0.0;
+    double nan  =  0.0 / 0.0;
+    printf("1/0   = %f\\n",  inf);   // inf
+    printf("-1/0  = %f\\n",  ninf);  // -inf
+    printf("0/0   = %f\\n",  nan);   // nan
+    printf("nan==nan: %s\\n", nan == nan ? "true" : "false"); // false!
+ 
+    // Peek at the raw bits of 1.0f using a union (type punning)
+    union { float f; uint32_t u; } pun = { .f = 1.0f };
+    printf("1.0f bits: 0x%08X\\n", pun.u); // 0x3F800000
+    // sign=0, exponent=127 (0x7F), mantissa=0 → value = 1.0 × 2^0 = 1.0
+ 
+    // Precision limit: doubles have ~15-16 significant decimal digits
+    printf("%.20f\\n", 0.1); // Shows the approximation
+ 
+    return 0;
+}`,
+                    output: "0.1 + 0.2 = 0.30000000000000004441\n== 0.3?   no\napprox ==? yes\n1/0   = inf\n-1/0  = -inf\n0/0   = nan\nnan==nan: false\n1.0f bits: 0x3F800000\n0.10000000000000000555",
+                    tip: "Use <code>double</code> over <code>float</code> for general-purpose decimal arithmetic — it has 15-16 significant digits vs 6-7 for float. Neither is suitable for money or financial calculations where exact decimal representation matters. For those, use integer arithmetic scaled by a power of 10 (store dollars as cents) or a dedicated decimal library."
                 }
             ]
         },
@@ -732,6 +818,98 @@ int main() {
 }`,
                     output: "(3, 4)\n(7, 8)\n10 20 30 40 \nVia pointer: (5, 6)",
                     tip: "Compound literals are especially useful in test code and in functions that require a struct argument you only need once. Instead of declaring a named variable just to fill it and pass it, the compound literal keeps the data right at the call site. They also combine well with designated initializers: <code>print_point((Point){.y = 10, .x = 5});</code>"
+                }
+            ]
+        },
+        {
+            id: "makefile",
+            title: "Build Automation with Make",
+            explanation: "Once a project spans more than two files, typing <code>gcc a.c b.c c.c d.c -o program</code> by hand is tedious, error-prone, and doesn't scale. More critically, it recompiles everything every time — even files you didn't touch. <code>make</code> is the standard Unix build tool for C. You write a <code>Makefile</code> that describes what to build, how to build it, and which files depend on which others. <code>make</code> then figures out the minimum set of files that need recompiling and does only that.",
+            sections: [
+                {
+                    title: "The Core Concept: Rules",
+                    content: "A Makefile consists of rules. Each rule says: to produce this <em>target</em> file, these <em>prerequisites</em> must be up to date, and here is the <em>recipe</em> to build it. <code>make</code> checks whether the target exists and is newer than all its prerequisites. If not, it runs the recipe. If yes, it skips the rule entirely — that's the incremental build. The recipe lines MUST start with a real tab character, not spaces. This is the most famous gotcha in all of Make.",
+                    code: `# Makefile — basic structure
+# target: prerequisites
+#[TAB] recipe
+ 
+# Build the final program from two object files
+program: main.o math_utils.o
+	gcc main.o math_utils.o -o program
+ 
+# Build main.o from main.c (recompile if main.c or math_utils.h changes)
+main.o: main.c math_utils.h
+	gcc -c main.c -o main.o
+ 
+# Build math_utils.o from math_utils.c
+math_utils.o: math_utils.c math_utils.h
+	gcc -c math_utils.c -o math_utils.o
+ 
+# Phony target: 'make clean' deletes all build artifacts
+# .PHONY tells make 'clean' is not a real file
+.PHONY: clean
+clean:
+	rm -f program main.o math_utils.o`,
+                    warning: "Recipe lines must begin with a TAB character — not 4 spaces, not 2 spaces, a literal tab. Make was written in 1976 and this design decision was locked in before anyone realized it was a mistake. Every text editor that auto-converts tabs to spaces will silently break your Makefile. If you get a 'missing separator' error, check your tabs."
+                },
+                {
+                    title: "Variables and Automatic Variables",
+                    content: "Makefiles have variables to avoid repetition, and automatic variables that are set automatically by Make for each rule. The most important automatic variables: <code>$@</code> is the target name, <code>$<</code> is the first prerequisite, <code>$^</code> is all prerequisites.",
+                    code: `# Variables
+CC      = gcc
+CFLAGS  = -Wall -Wextra -g
+TARGET  = program
+SRCS    = main.c math_utils.c utils.c
+OBJS    = $(SRCS:.c=.o)   # Replace .c with .o in SRCS list
+ 
+# Default rule (first rule is the default target)
+$(TARGET): $(OBJS)
+	$(CC) $(OBJS) -o $(TARGET)
+ 
+# Pattern rule: how to build ANY .o from its .c
+# $< = the .c file, $@ = the .o file
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+ 
+.PHONY: clean
+clean:
+	rm -f $(TARGET) $(OBJS)
+ 
+# Usage:
+#   make          — builds program (only recompiles changed files)
+#   make clean    — deletes all build output
+#   make -j4      — builds using 4 parallel jobs (faster on multi-core)`
+                },
+                {
+                    title: "A Practical Makefile Template",
+                    content: "This template handles the common case of a C project in a single directory. It automatically discovers all <code>.c</code> files, compiles them to <code>.o</code> files, links them, and tracks header dependencies so that changing a <code>.h</code> file triggers recompilation of every <code>.c</code> that includes it.",
+                    code: `CC      = gcc
+CFLAGS  = -Wall -Wextra -Wpedantic -std=c11 -g
+TARGET  = myprogram
+ 
+# Automatically find all .c files in the current directory
+SRCS    = $(wildcard *.c)
+OBJS    = $(SRCS:.c=.o)
+DEPS    = $(OBJS:.o=.d)   # Dependency files generated by gcc
+ 
+.PHONY: all clean
+ 
+all: $(TARGET)
+ 
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) $^ -o $@
+ 
+# -MMD generates a .d file listing all headers this .c includes
+# The .d files are included at the bottom so make knows about
+# header dependencies automatically
+%.o: %.c
+	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
+ 
+-include $(DEPS)
+ 
+clean:
+	rm -f $(TARGET) $(OBJS) $(DEPS)`,
+                    tip: "The <code>-MMD -MP</code> flags tell GCC to generate <code>.d</code> dependency files alongside the object files. Each <code>.d</code> file lists every header the corresponding <code>.c</code> file includes. The <code>-include $(DEPS)</code> line feeds those back into Make. Result: if you change any header, Make automatically recompiles every source file that includes it — without you having to manually track those relationships."
                 }
             ]
         },

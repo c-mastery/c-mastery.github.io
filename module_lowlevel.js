@@ -463,6 +463,105 @@ int main() {
     return 0;
 }`,
                     output: "Result: 15\nResult: 5"
+                },
+                {
+                    title: "Cleaning Up With typedef",
+                    content: "The raw function pointer syntax — <code>int (*operation)(int, int)</code> — is tolerable for one variable, but the moment you write a function that takes a function pointer as a parameter, or returns one, the declaration becomes a visual disaster that deters even experienced C programmers. The solution is a typedef that gives the function pointer type a clean name. After that, you use it exactly like any other type.",
+                    code: `#include <stdio.h>
+ 
+// Without typedef — painful to read, painful to write
+int apply_raw(int (*func)(int, int), int a, int b) {
+    return func(a, b);
+}
+ 
+// Define a type alias for "pointer to function taking two ints, returning int"
+typedef int (*BinaryOp)(int, int);
+ 
+// Now the parameter and return type are readable
+int  apply(BinaryOp op, int a, int b) { return op(a, b); }
+BinaryOp select_op(char c);   // Returns a function pointer — clean!
+ 
+int add(int a, int b) { return a + b; }
+int sub(int a, int b) { return a - b; }
+int mul(int a, int b) { return a * b; }
+ 
+BinaryOp select_op(char c) {
+    if (c == '+') return add;
+    if (c == '-') return sub;
+    if (c == '*') return mul;
+    return NULL;
+}
+ 
+int main() {
+    BinaryOp op = select_op('+');
+    printf("10 + 3 = %d\\n", apply(op, 10, 3));
+ 
+    op = select_op('*');
+    printf("10 * 3 = %d\\n", apply(op, 10, 3));
+ 
+    // NULL check before calling
+    op = select_op('?');
+    if (op != NULL) {
+        printf("Result: %d\\n", op(10, 3));
+    } else {
+        printf("Unknown operator\\n");
+    }
+ 
+    return 0;
+}`,
+                    output: "10 + 3 = 13\n10 * 3 = 30\nUnknown operator",
+                    tip: "The typedef naming convention is to end function pointer type names with <code>_fn</code>, <code>_func</code>, or <code>_cb</code> (for callback). Examples: <code>typedef void (*EventHandler)(int event, void *data)</code>, <code>typedef int (*CompareFn)(const void *, const void *)</code>. This makes it immediately obvious at the call site that you're working with a callable, not an ordinary value."
+                },
+                {
+                    title: "Dispatch Tables: Arrays of Function Pointers",
+                    content: "Since function pointers are values, you can put them in an array. An array of function pointers indexed by an enum or integer is called a dispatch table. It replaces a long if-else or switch chain with a single array lookup — O(1) dispatch regardless of how many cases there are. This pattern is everywhere in production C: it is how the Linux kernel dispatches system calls, how file system operations are routed, and how event-driven systems call registered handlers.",
+                    code: `#include <stdio.h>
+ 
+typedef int (*BinaryOp)(int, int);
+ 
+int add(int a, int b) { return a + b; }
+int sub(int a, int b) { return a - b; }
+int mul(int a, int b) { return a * b; }
+int dvd(int a, int b) { return b != 0 ? a / b : 0; }
+ 
+// --- Example 1: indexed dispatch table ---
+// Index 0=add, 1=sub, 2=mul, 3=div
+BinaryOp ops[] = { add, sub, mul, dvd };
+const char *op_names[] = { "add", "sub", "mul", "div" };
+ 
+// --- Example 2: state machine via dispatch table ---
+typedef enum { STATE_IDLE, STATE_RUNNING, STATE_DONE, STATE_COUNT } State;
+typedef State (*StateHandler)(void);
+ 
+State handle_idle()    { printf("  idle -> running\\n");  return STATE_RUNNING; }
+State handle_running() { printf("  running -> done\\n");  return STATE_DONE;    }
+State handle_done()    { printf("  done -> idle\\n");     return STATE_IDLE;    }
+ 
+StateHandler state_table[STATE_COUNT] = {
+    [STATE_IDLE]    = handle_idle,
+    [STATE_RUNNING] = handle_running,
+    [STATE_DONE]    = handle_done,
+};
+ 
+int main() {
+    // Example 1: dispatch table for math ops
+    int a = 20, b = 4;
+    int num_ops = sizeof(ops) / sizeof(ops[0]);
+    for (int i = 0; i < num_ops; i++) {
+        printf("%s(%d, %d) = %d\\n", op_names[i], a, b, ops[i](a, b));
+    }
+ 
+    // Example 2: state machine — run 3 transitions
+    printf("\\nState machine:\\n");
+    State current = STATE_IDLE;
+    for (int i = 0; i < 3; i++) {
+        current = state_table[current]();
+    }
+ 
+    return 0;
+}`,
+                    output: "add(20, 4) = 24\nsub(20, 4) = 16\nmul(20, 4) = 80\ndiv(20, 4) = 5\n\nState machine:\n  idle -> running\n  running -> done\n  done -> idle",
+                    tip: "Notice the designated initializer syntax for the state table: <code>[STATE_IDLE] = handle_idle</code>. This is safer than relying on order — if you add a new state in the middle of the enum, the table doesn't silently shift. The compiler also warns about uninitialized entries, so a missing case is caught at compile time, not at the moment a rogue state blows past a NULL function pointer at runtime."
                 }
             ]
         },
@@ -703,6 +802,89 @@ ERROR: AddressSanitizer: heap-use-after-free on address 0x... at pc ...
 READ of size 4 at 0x... thread T0
   #0 main prog.c:15`,
                     tip: "The standard professional workflow: <strong>develop</strong> with <code>-Wall -Wextra -Werror</code>, <strong>test</strong> with <code>-fsanitize=address,undefined -g</code>, <strong>release</strong> with <code>-O2 -DNDEBUG</code>. These three build configurations catch the vast majority of C bugs before they reach production."
+                }
+            ]
+        },
+        {
+            id: "gdb",
+            title: "Debugging with GDB",
+            explanation: "When your program crashes, misbehaves, or produces wrong output, you have two options: scatter <code>printf</code> calls everywhere and guess, or use a debugger and actually look at what's happening. GDB (the GNU Debugger) is the standard debugger for C on Linux and macOS. It lets you pause execution at any line, inspect every variable's value, step through code one instruction at a time, and examine the call stack when a crash occurs. Ten commands cover 90% of real debugging sessions.",
+            sections: [
+                {
+                    title: "Compiling for Debugging",
+                    content: "Before using GDB, compile with the <code>-g</code> flag. This embeds debugging information — variable names, source line numbers, function names — into the binary. Without it, GDB sees raw addresses and assembly, which is much harder to work with. Never ship the <code>-g</code> binary to users, but always use it during development.",
+                    code: `# Compile with debug info
+gcc -g -Wall main.c -o myprogram
+ 
+# Start GDB with the program
+gdb ./myprogram
+ 
+# If the program needs command-line arguments:
+gdb --args ./myprogram arg1 arg2`
+                },
+                {
+                    title: "The 10 Commands That Cover Everything",
+                    content: "GDB has hundreds of commands. These ten handle almost every practical debugging situation.",
+                    points: [
+                        "<code>run</code> (or <code>r</code>): Start the program. It runs until it hits a breakpoint, crashes, or finishes.",
+                        "<code>break filename:line</code> (or <code>b</code>): Set a breakpoint. Execution pauses just before that line runs. Example: <code>break main.c:25</code> or just <code>break main</code> to stop at the start of main.",
+                        "<code>next</code> (or <code>n</code>): Execute the current line and stop at the next one. If the current line is a function call, it executes the whole function and stops after it returns — it does not step into the function.",
+                        "<code>step</code> (or <code>s</code>): Like next, but if the current line calls a function, step INTO that function.",
+                        "<code>print expr</code> (or <code>p</code>): Print the value of any expression: variable, pointer dereference, array element, struct field. Example: <code>p myvar</code>, <code>p *ptr</code>, <code>p arr[5]</code>.",
+                        "<code>backtrace</code> (or <code>bt</code>): Print the call stack — every function call that led to the current position. Indispensable when a crash happens deep inside a function.",
+                        "<code>info locals</code>: Print all local variables in the current stack frame with their current values. Use this after stopping at a breakpoint to see everything at once.",
+                        "<code>watch expr</code>: Set a watchpoint — pauses execution whenever the value of an expression changes. Use this to find where a variable is being unexpectedly modified.",
+                        "<code>continue</code> (or <code>c</code>): Resume execution after a breakpoint until the next breakpoint or program end.",
+                        "<code>quit</code> (or <code>q</code>): Exit GDB."
+                    ]
+                },
+                {
+                    title: "A Complete Debugging Session",
+                    content: "Here's what a real GDB session looks like when tracking down a crash. The program is crashing with a segmentation fault somewhere inside a function.",
+                    code: `$ gcc -g buggy.c -o buggy
+$ gdb ./buggy
+(gdb) run
+Program received signal SIGSEGV, Segmentation fault.
+0x00005555555551a8 in process_list (head=0x0) at buggy.c:14
+14          printf("%d\\n", head->value);
+ 
+(gdb) backtrace
+#0  process_list (head=0x0) at buggy.c:14
+#1  main () at buggy.c:28
+ 
+(gdb) frame 1         <- switch to main's stack frame
+(gdb) info locals     <- see main's local variables
+node = 0x0            <- the pointer is NULL!
+ 
+(gdb) break buggy.c:14
+Breakpoint 1 at 0x5555555551a8
+ 
+(gdb) run
+Breakpoint 1, process_list (head=0x0) at buggy.c:14
+14          printf("%d\\n", head->value);
+ 
+(gdb) print head
+$1 = (Node *) 0x0     <- confirmed: head is NULL
+ 
+(gdb) quit`,
+                    tip: "GDB's <code>backtrace</code> is the single most useful command for crash debugging. Run the program, let it crash, type <code>bt</code>, and GDB shows you the exact chain of function calls that led to the crash — with file names and line numbers. This takes you directly to the bug instead of guessing. If the crash happens inside a library function, frames above it in the backtrace show your code that triggered it."
+                },
+                {
+                    title: "TUI Mode: GDB With a Source View",
+                    content: "GDB's Text User Interface (TUI) mode splits the terminal into a source code pane and a command pane, so you can see exactly which line you're on while debugging without constantly typing <code>list</code>.",
+                    code: `# Start GDB in TUI mode
+gdb -tui ./myprogram
+ 
+# Or switch to TUI mode from inside GDB
+(gdb) layout src    <- show source code pane
+(gdb) layout regs   <- show source + CPU registers
+(gdb) layout split  <- show source + assembly
+ 
+# Navigation in TUI
+# Ctrl+L  — refresh the screen if it gets garbled
+# Ctrl+P  — previous command (up arrow equivalent)
+# Ctrl+N  — next command (down arrow equivalent)`,
+                    tip: "If GDB is available but TUI feels too primitive, consider <code>cgdb</code> (a curses-based frontend with syntax highlighting) or the GDB extension for VS Code and CLion, which give you full GUI debugging backed by the same GDB engine. All of them use the exact same GDB commands under the hood — learning the commands directly means you can debug even when no GUI is available, like on a remote server over SSH."
                 }
             ]
         },

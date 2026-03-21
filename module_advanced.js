@@ -335,6 +335,67 @@ int main() {
     return 0;
 }`,
                     output: "Day number: 3\nIt is Wednesday!"
+                },
+                {
+                    title: "Tagged Unions: The Safe Way to Use Unions",
+                    content: "A union alone is dangerous because nothing stops you from writing an <code>int</code> and reading back a <code>float</code>. The standard idiom to solve this is a tagged union (also called a discriminated union): wrap the union in a struct with an enum field that records which member is currently active. The enum is the 'tag'. Any code that reads from the union checks the tag first. This gives you a type-safe variant type in plain C.",
+                    code: `#include <stdio.h>
+#include <string.h>
+ 
+// The tag: which field in the union is currently valid
+typedef enum {
+    TYPE_INT,
+    TYPE_FLOAT,
+    TYPE_STRING
+} ValueType;
+ 
+// The tagged union: struct holds the tag + the union
+typedef struct {
+    ValueType type;
+    union {
+        int    i;
+        float  f;
+        char   s[64];
+    } as;
+} Value;
+ 
+// Constructor helpers keep the tag and data in sync
+Value make_int(int i)          { return (Value){ .type = TYPE_INT,    .as.i = i }; }
+Value make_float(float f)      { return (Value){ .type = TYPE_FLOAT,  .as.f = f }; }
+Value make_string(const char*s){ Value v = {.type=TYPE_STRING}; strncpy(v.as.s,s,63); return v; }
+ 
+// Safe printer: checks tag before accessing the union
+void print_value(const Value *v) {
+    switch (v->type) {
+        case TYPE_INT:    printf("int(%d)",    v->as.i); break;
+        case TYPE_FLOAT:  printf("float(%g)",  v->as.f); break;
+        case TYPE_STRING: printf("str(\"%s\")", v->as.s); break;
+    }
+    printf("\\n");
+}
+ 
+int main() {
+    Value vals[] = {
+        make_int(42),
+        make_float(3.14f),
+        make_string("hello")
+    };
+ 
+    int n = sizeof(vals) / sizeof(vals[0]);
+    for (int i = 0; i < n; i++) {
+        print_value(&vals[i]);
+    }
+ 
+    // Safe: check the tag before accessing
+    Value v = make_int(100);
+    if (v.type == TYPE_INT) {
+        printf("It's an int: %d\\n", v.as.i);
+    }
+ 
+    return 0;
+}`,
+                    output: "int(42)\nfloat(3.14)\nstr(\"hello\")\nIt's an int: 100",
+                    tip: "This pattern is how you build heterogeneous lists in C — arrays or linked lists where each node can hold a value of any type. It is also the foundation of every parser, interpreter, and scripting language runtime written in C. If you ever build a JSON parser, an AST, or a configuration system in C, you will use tagged unions constantly."
                 }
             ]
         },
