@@ -1007,6 +1007,9 @@ function resetCode() {
 
 // ===== Event Listeners =====
 function setupEventListeners() {
+    // Logo / home button — always navigates back to the dashboard
+    document.getElementById('logoHomeBtn').addEventListener('click', showDashboard);
+
     // Theme toggle
     document.getElementById('themeToggle').addEventListener('click', toggleTheme);
     
@@ -1050,7 +1053,7 @@ function setupEventListeners() {
             document.getElementById('sidebar').classList.remove('open');
         }
     });
-    document.getElementById('logoHomeBtn').addEventListener('click', showDashboard);
+    
     // Dashboard module cards
     document.getElementById('modulesOverview').addEventListener('click', (e) => {
         const card = e.target.closest('.module-card');
