@@ -1,19 +1,19 @@
 const ModuleEarlyIntermediate = {
-    description: "Controlling program flow with loops, organizing code with functions, and handling lists of data with arrays. This is where C starts feeling like a real programming language instead of a novelty.",
+    description: "This is where C starts becoming a real tool rather than an elaborate toy. Loops, functions, arrays, and strings are the four pillars of every non-trivial program you'll ever write. Loops let the same code handle one item or a billion. Functions let you decompose complex problems into manageable, testable, reusable pieces. Arrays let you work with collections of data. Strings let you handle text — carefully, because C strings will happily destroy your program if you let them. Master these four topics and you can write programs that solve real problems.",
     
     lessons: [
         {
             id: "loops",
             title: "Loops",
-            explanation: "Almost all useful programs repeat operations: process every line in a file, check every element in a list, retry an operation until it succeeds, count down from a timer. Without loops you would have to write out each repetition by hand, which is obviously impossible for any real-scale task. Loops are the mechanism that makes programs scale — the same code that processes one item processes a million items. At the machine level, a loop is just a conditional jump back to an earlier instruction, but at the source level the three C loop types — <code>while</code>, <code>for</code>, and <code>do-while</code> — each express a different pattern of repetition with different clarity for different use cases. Choosing the right one is a readability decision, not a correctness one.",
+            explanation: "Almost every useful program repeats something: process every line in a file, apply a transformation to every pixel in an image, keep asking for input until the user enters something valid, count down from a timer. Without loops you would have to write each repetition by hand — which is obviously impossible for any real-scale task and impractical even for small ones. Loops are the mechanism that gives programs scale: the same ten lines of code that process one item can process a million items without any modification. At the machine level, a loop is just a conditional jump instruction that sends execution back to an earlier address. But at the source level, C's three loop forms — <code>while</code>, <code>for</code>, and <code>do-while</code> — each express a different pattern of repetition with different clarity. Choosing the right loop type is a readability decision that tells the next reader exactly what kind of repetition you intend.",
             sections: [
                 {
                     title: "The while Loop",
-                    content: "The <code>while</code> loop is the most fundamental: check a condition, execute the body if true, repeat. It is the right choice when you do not know in advance how many iterations you need — 'keep reading input until the user types quit', 'keep retrying until the connection succeeds', 'keep processing until the buffer is empty'. The condition is evaluated <em>before</em> each iteration, so if it is false from the start, the body never runs at all.",
+                    content: "The <code>while</code> loop is the most fundamental loop — conceptually, it's just 'keep doing this as long as the condition is true'. It's the right choice when you don't know in advance how many iterations you'll need: 'keep reading from the network until the connection closes', 'keep prompting the user until they enter a valid value', 'keep processing queue items until the queue is empty'. The condition is checked <em>before</em> each iteration, so if it's false from the very start, the body never runs at all — zero iterations is a completely valid outcome.",
                     points: [
-                        "<strong>Syntax</strong>: <code>while (condition) { ... }</code>. As long as the condition is non-zero, the body executes and then the condition is re-evaluated.",
-                        "<strong>The loop variable must change</strong>: Every loop must have a way to eventually make the condition false. Something inside the body must move you toward the exit. If nothing changes the condition, you have an infinite loop — the program runs forever consuming CPU and never terminates.",
-                        "<strong>Zero-iteration loops are valid</strong>: If the condition is false before the first iteration, the body is skipped entirely. This is correct and expected behaviour — not a bug."
+                        "<strong>Syntax</strong>: <code>while (condition) { ... }</code>. As long as the condition evaluates to non-zero, the body executes, then the condition is re-evaluated. This cycle repeats until the condition becomes zero.",
+                        "<strong>Something in the body must move toward the exit</strong>: If nothing inside the loop changes the condition, it will never become false and you have an infinite loop. The program will run forever, pinning a CPU core at 100% until you kill it (Ctrl+C on Linux/macOS). This is one of the most common beginner bugs and one of the easiest to make.",
+                        "<strong>Zero-iteration loops are valid and expected</strong>: If the condition is false before the first check, the body is skipped entirely. This is correct behavior — not a bug. Write your code to handle it gracefully."
                     ],
                     code: `#include <stdio.h>
 
@@ -47,15 +47,15 @@ int main() {
     return 0;
 }`,
                     output: "5... 4... 3... 2... 1... Launch!\nSum before sentinel: 11\nLoop skipped entirely (n was already 0).",
-                    warning: "The most common while-loop bug is forgetting to update the loop variable. If <code>countdown</code> is never decremented, the condition <code>countdown > 0</code> is always true. The program loops forever. On Linux/macOS you can kill it with Ctrl+C; on embedded hardware it will freeze the device."
+                    warning: "The most common while-loop mistake is forgetting to update the loop variable. If <code>countdown</code> is never decremented, the condition <code>countdown > 0</code> is always true and the loop never exits. On a desktop machine you'll notice the program freezes and a CPU core spikes to 100% — kill it with Ctrl+C. On embedded hardware with no operating system, the entire device freezes and must be power-cycled. Always trace through your loop mentally before running it: what is the initial value? What changes it? When does the condition first become false?"
                 },
                 {
                     title: "The for Loop",
-                    content: "The <code>for</code> loop packages the three things every counted loop needs — where to start, when to stop, how to advance — into a single header line. This makes the loop's entire lifecycle visible at a glance without having to scan the body. It is the right choice when you know exactly how many iterations you need, or when you are iterating over an index-based structure like an array. The three parts of the header are separated by semicolons and each is optional — you can omit any of them, though that usually means a <code>while</code> loop would express your intent more clearly.",
+                    content: "The <code>for</code> loop packages the three things every counted loop needs — initialization, stopping condition, and advancement — into a single header line. This concentrates the entire lifecycle of the loop in one visible place, making counted loops much easier to read and reason about than the equivalent <code>while</code>. It's the right choice when you know how many iterations you need, or when you're iterating over an indexed structure like an array. The three parts of the header are separated by semicolons, and each is technically optional — but if you start omitting them, you usually want a <code>while</code> loop instead.",
                     points: [
-                        "<strong>Initialization</strong>: Executes exactly once before the loop starts. Typically creates and sets the counter variable. <code>int i = 0</code> is conventional — <code>i</code> stands for 'index'.",
-                        "<strong>Condition</strong>: Evaluated before every iteration. If false (zero), the loop ends. If the condition is false on the very first check, the body never runs.",
-                        "<strong>Update</strong>: Executes after the body, before the condition is re-checked. Typically increments or decrements the counter. <code>i++</code> is the most common, but you can count backward (<code>i--</code>), skip (<code>i += 2</code>), or multiply (<code>i *= 2</code>)."
+                        "<strong>Initialization</strong>: Runs exactly once before the loop begins. Typically declares and sets the counter variable. By convention, <code>int i = 0</code> is the standard starting point — <code>i</code> standing for 'index'. Declaring the variable inside the <code>for</code> header (C99+) is preferred because it limits the variable's scope to the loop, preventing accidental use after it ends.",
+                        "<strong>Condition</strong>: Evaluated before every iteration. If false on the very first check, the body never executes. This is the same semantic as <code>while</code>.",
+                        "<strong>Update</strong>: Executes after each iteration of the body, before the condition is re-checked. Usually <code>i++</code> or <code>i--</code>, but can be any expression: <code>i += 2</code> to skip every other element, <code>i *= 2</code> to process exponentially spaced indices."
                     ],
                     code: `#include <stdio.h>
 
@@ -91,11 +91,11 @@ int main() {
     return 0;
 }`,
                     output: "Forward: 0 1 2 3 4 \nBackward: 4 3 2 1 0 \nEvens: 0 2 4 6 8 10 \n1 + 2 + ... + 100 = 5050",
-                    tip: "The classic off-by-one errors: <code>i < N</code> gives you exactly N iterations (0 to N-1). <code>i <= N</code> gives you N+1 iterations (0 to N). For array traversal always use <code>i < arraySize</code> — arrays are zero-indexed and <code>arr[arraySize]</code> is one past the end."
+                    tip: "The off-by-one error is the most common loop bug in the world. Here is the rule to prevent it: <code>i < N</code> gives you exactly N iterations with indices 0 through N-1. <code>i <= N</code> gives you N+1 iterations with indices 0 through N. For array traversal, always use <code>i < arraySize</code> — arrays are zero-indexed, so valid indices are 0 to size-1, and <code>arr[size]</code> is one past the end and a guaranteed out-of-bounds access. Getting this wrong produces either reading garbage data or writing into memory you don't own — both are silent and dangerous."
                 },
                 {
                     title: "Do-While Loop",
-                    content: "The <code>do-while</code> loop executes the body first, then checks the condition. This guarantees the body runs at least once regardless of the condition's initial value. The practical difference from <code>while</code> is exactly one guaranteed execution — use it when you always need to do something at least once before you can determine whether to continue. Interactive input prompts and retry loops are the clearest real-world use cases.",
+                    content: "The <code>do-while</code> loop is the odd one out: it checks the condition at the <em>bottom</em> rather than the top, which guarantees the body runs at least once no matter what. The practical difference from <code>while</code> is exactly one guaranteed execution — use it when you must perform the action before you can know whether to repeat it. The classic use case is input validation: you have to show the menu and read the user's choice before you can know whether to continue. A regular <code>while</code> would need either a duplicate menu display or an awkward initial sentinel value.",
                     code: `#include <stdio.h>
 
 int main() {
@@ -117,11 +117,11 @@ int main() {
     printf("Exiting.\\n");
     return 0;
 }`,
-                    tip: "The key distinction: <code>while</code> may execute zero times (if the condition starts false). <code>do-while</code> always executes at least once. For most loops, <code>while</code> or <code>for</code> is clearer. Reach for <code>do-while</code> specifically when zero iterations would be wrong."
+                    tip: "The distinction is simple: <code>while</code> may run zero times if the condition is false before the first check. <code>do-while</code> always runs at least once. Use <code>while</code> and <code>for</code> for the vast majority of loops. Reach for <code>do-while</code> specifically when zero iterations would be logically wrong — interactive menus and input-retry loops are the textbook cases."
                 },
                 {
                     title: "Nested Loops",
-                    content: "A loop inside another loop. The inner loop runs to full completion for every single iteration of the outer loop. If the outer runs M times and the inner runs N times, the inner body executes M×N times total. This is the natural structure for anything two-dimensional: grids, matrices, multiplication tables, 2D game boards. The inner loop variable is independent of the outer — each has its own counter.",
+                    content: "A loop inside another loop. The inner loop completes all of its iterations for every single iteration of the outer loop. If the outer loop runs M times and the inner loop runs N times, the inner body executes M×N times total. This is the natural structure for anything two-dimensional: grids, matrices, multiplication tables, pixel operations on images, game boards. Think of it like a clock: the outer loop is the hour hand, the inner loop is the minute hand — for every tick of the hour hand, the minute hand completes a full revolution.",
                     code: `#include <stdio.h>
 
 int main() {
@@ -142,18 +142,18 @@ int main() {
     return 0;
 }`,
                     output: "      1   2   3   4   5\n   ----------------\n 1|   1   2   3   4   5\n 2|   2   4   6   8  10\n 3|   3   6   9  12  15\n 4|   4   8  12  16  20\n 5|   5  10  15  20  25",
-                    tip: "Nested loops have O(n²) complexity — doubling the input size quadruples the work. For small grids this is fine. For large data sets it becomes a performance problem quickly. When you find yourself writing triple-nested loops, stop and think whether there is a smarter algorithm."
+                    tip: "Nested loops have O(n²) complexity — doubling the input size quadruples the work. For a 10×10 grid this means 100 operations. For a 1000×1000 grid it means 1,000,000. For large inputs, quadratic complexity becomes a serious performance problem. When you find yourself writing triple-nested loops (O(n³)), stop and think hard about whether there's a smarter algorithm — there usually is."
                 }
             ]
         },
         {
             id: "break-continue",
             title: "Loop Control",
-            explanation: "The <code>break</code> and <code>continue</code> statements give you surgical control over loop execution that the condition expression alone cannot provide. The condition governs whether a new iteration starts at all — but once inside the body, you sometimes discover mid-execution that you either need to stop the entire loop or skip the rest of this particular iteration. Without <code>break</code> and <code>continue</code>, the only alternative would be convoluted boolean flags that make the code harder to read. These keywords make intent explicit: 'I am done' (<code>break</code>) or 'this item doesn't qualify, move on' (<code>continue</code>).",
+            explanation: "<code>break</code> and <code>continue</code> give you surgical control over loop execution that the condition expression alone cannot provide. The condition governs whether a new iteration begins — but once inside the body, you sometimes discover mid-execution that you either need to abandon the entire loop or skip processing the current item. Without these keywords, the alternatives are convoluted flag variables and deeply nested <code>if</code>s that make the code much harder to read. These two keywords express intent precisely: 'I am done with the entire loop' (<code>break</code>) versus 'this item doesn't qualify — move to the next one' (<code>continue</code>).",
             sections: [
                 {
                     title: "break — Exit the Loop Immediately",
-                    content: "<code>break</code> jumps execution to the first statement after the loop's closing brace. No remaining iterations run. No condition is re-checked. It is particularly useful for search loops — once you have found what you were looking for, there is no point processing the rest of the data.",
+                    content: "<code>break</code> immediately exits the innermost loop — no remaining iterations run, no condition is re-checked. Execution jumps to the first statement after the loop's closing brace. It is the right tool for search loops: once you've found what you were looking for, there's no point wasting CPU time examining the rest of the data. It's also the canonical way to exit an infinite loop (<code>while(1)</code>) from inside the body when the exit condition is complex.",
                     code: `#include <stdio.h>
 
 int main() {
@@ -183,11 +183,11 @@ int main() {
     return 0;
 }`,
                     output: "First negative at index 3: -5\nSmallest n where n^2 > 50: 8 (n^2 = 64)",
-                    tip: "<code>break</code> only exits the innermost loop. In nested loops, a <code>break</code> inside the inner loop exits the inner loop but the outer loop continues. If you need to exit multiple nested loops at once, <code>goto</code> (the one legitimate use case) or a flag variable are the standard approaches."
+                    tip: "<code>break</code> only exits the <em>innermost</em> loop it's inside. In nested loops, a <code>break</code> in the inner loop exits the inner loop — the outer loop keeps running. If you need to escape from multiple levels of nesting at once, the options are: a boolean flag that both loops check, restructuring the code into a function (then use <code>return</code>), or <code>goto</code> — which is almost always wrong but is actually the one scenario where the C community accepts it."
                 },
                 {
                     title: "continue — Skip to the Next Iteration",
-                    content: "<code>continue</code> skips the rest of the current iteration's body and jumps straight to the update step (in a <code>for</code> loop) or back to the condition check (in a <code>while</code>). The loop itself does not end — only this iteration is cut short. Use it to filter out items that do not qualify for processing, keeping the main logic unindented and readable.",
+                    content: "<code>continue</code> skips the remainder of the current iteration's body and jumps straight to the update expression (in a <code>for</code> loop) or back to the condition check (in a <code>while</code>). The loop itself does not end — only this one iteration is cut short. Think of it as a filter: use it to skip items that don't qualify for processing, keeping the main logic at the top level of indentation rather than buried inside an <code>if</code> block. Code that uses <code>continue</code> to filter early is often much more readable than equivalent code with deep nesting.",
                     code: `#include <stdio.h>
 
 int main() {
@@ -219,16 +219,16 @@ int main() {
         {
             id: "functions",
             title: "Functions",
-            explanation: "A function is a named, reusable block of code that performs a specific, well-defined task. The single most important reason functions exist is that without them, every program would be one long sequence of statements, and any logic you needed to repeat would have to be copied. Copy-pasted code is one of the most expensive problems in software — when the logic has a bug or needs changing, you must find and fix every copy. Functions solve this: write the logic once, call it everywhere, fix it in one place. But functions provide far more than just code reuse. They give you the ability to decompose a complex problem into manageable sub-problems, name those sub-problems meaningfully, and reason about each one independently. A well-named function is documentation — <code>calculateInterest(principal, rate, years)</code> is self-explanatory in a way that 50 lines of arithmetic never is.",
+            explanation: "A function is a named, reusable block of code with a single well-defined purpose. Functions are the most important tool for managing complexity in programming — without them, every program would be one enormous sequence of statements, and any piece of logic you needed more than once would have to be copy-pasted. Copy-pasted code is a maintenance nightmare: when you find a bug in the logic, you have to find and fix every copy. Miss one and you've left a bug in production. Functions solve this at the source: write the logic once, give it a name, call it everywhere. Fix it once and every caller benefits automatically. But functions are more than just deduplication. They let you break a large, overwhelming problem into smaller named sub-problems. A well-named function is documentation — reading <code>calculateMonthlyInterest(principal, rate)</code> tells you exactly what it does without reading a single line of its implementation. That self-documenting quality is why functions are the primary tool for making code readable and maintainable.",
             sections: [
                 {
                     title: "Anatomy of a Function",
-                    content: "Every function definition has four parts: the return type (what it gives back), the name (how you call it), the parameter list (what it takes in), and the body (what it does). When a function reaches a <code>return</code> statement, execution jumps back to the caller and the returned value is substituted in place of the function call. A function can be called any number of times from anywhere in the program — each call is independent.",
+                    content: "Every function definition has four parts: the return type (what value it produces), the name (how you call it), the parameter list (what inputs it takes), and the body (what it actually does). When execution hits a <code>return</code> statement, control jumps back to wherever the function was called from, and the returned value is substituted in place of the call expression. A function can be called any number of times from anywhere in the program — each call is completely independent and gets its own local variables.",
                     points: [
-                        "<strong>Return type</strong>: Tells the compiler what type of value this function produces. <code>int</code> for whole numbers, <code>double</code> for decimals, <code>char</code> for a single character, <code>void</code> for 'produces nothing'. The caller uses the return value in an expression or assignment.",
-                        "<strong>Name</strong>: Follows the same rules as variable names. Descriptive names are not optional — <code>computeMonthlyPayment</code> is infinitely better than <code>calc</code> when you are reading code six months later.",
-                        "<strong>Parameters</strong>: The inputs, declared exactly like local variables. Each call provides its own values for these — they are copies, not the originals (covered in 'Pass by Value' below).",
-                        "<strong>Body</strong>: Any statements the function needs. Local variables declared here exist only for the duration of this call and are destroyed when the function returns."
+                        "<strong>Return type</strong>: Declares what type of value the function produces. <code>int</code> for whole numbers, <code>double</code> for decimals, <code>char*</code> for strings, <code>void</code> for 'this function produces no value'. The compiler enforces that you use the return value consistently with the declared type.",
+                        "<strong>Name</strong>: Follow the same rules as variable names. The name is the most important documentation you write — <code>computeMonthlyPayment</code> tells the next reader exactly what happens inside. <code>calc</code> tells them nothing.",
+                        "<strong>Parameters</strong>: The inputs, declared exactly like local variables. When you call the function, the values you provide are copied into these parameter variables. Each call gets fresh copies — parameters in one call don't interfere with parameters in another.",
+                        "<strong>Body</strong>: The statements the function executes. Local variables declared here exist only for the duration of this specific call and are automatically destroyed when the function returns. Two simultaneous calls to the same function (in different threads, or through recursion) each get completely separate local variable storage."
                     ],
                     code: `#include <stdio.h>
 
@@ -263,7 +263,7 @@ int main() {
                 },
                 {
                     title: "Void Functions — Actions Without Results",
-                    content: "Not every function computes and returns a value. Some functions exist purely to perform a side effect — print a report, draw a UI element, write to a file, play a sound. These use the <code>void</code> return type, which tells the compiler and the reader 'this function does something, it does not produce a value you can use in an expression'. Void functions improve readability by naming procedures: instead of 50 lines of printf scattered through main, you have a single call to <code>printInvoice()</code>.",
+                    content: "Not every function computes and returns a value. Some functions exist purely to perform a side effect — print a formatted report, update a display, write data to a file, play an audio sample. These use the <code>void</code> return type, which signals to the compiler and every reader 'this function does something; it does not produce a value you can use in an expression'. Void functions are one of the most underrated readability tools in C: replacing 50 lines of printf calls scattered through <code>main</code> with a single call to <code>printInvoice(order)</code> makes <code>main</code> readable at a glance while moving the complexity into a named, findable, testable unit.",
                     code: `#include <stdio.h>
 
 // Prints a formatted separator line
@@ -292,7 +292,7 @@ int main() {
                 },
                 {
                     title: "Pass by Value — and Why It Matters",
-                    content: "When you call a function and pass a variable, C copies the value into the function's parameter. The function receives its own independent copy — it cannot reach back and change the original. This isolation is a feature, not a limitation: it means functions cannot accidentally corrupt their caller's data, and you can reason about a function's behaviour by looking at it alone. However, there are cases where you genuinely need a function to modify the caller's variable — for example, a <code>swap</code> function or a function that fills in multiple output values. The answer is pointers, covered in the Low-Level Core module. Understanding pass-by-value first makes the purpose of pointers obvious.",
+                    content: "When you call a function and pass a variable, C copies the value into the parameter. The function gets its own independent copy and cannot see or change the original. This isolation is deliberate — it means you can look at a function in isolation and understand exactly what it can and cannot affect. No hidden dependencies, no spooky action at a distance. However, sometimes you genuinely need a function to modify the caller's variable — a swap function, a function that fills in multiple output values, a parser that updates a position counter. The solution is to pass the variable's address (a pointer) instead of its value. That's covered in the Low-Level Core module. Understanding pass-by-value now makes the purpose of pointers self-evident when you get there.",
                     code: `#include <stdio.h>
 
 // This function receives a COPY of x — it cannot change the caller's variable
@@ -354,7 +354,7 @@ int add(int a, int b) {
         {
             id: "arrays",
             title: "Arrays",
-            explanation: "Consider storing the scores of 100 students. Without arrays, you would need 100 separate variables — <code>score1</code>, <code>score2</code>, ..., <code>score100</code> — and every piece of logic that processes them would need to repeat 100 times. There is no way to loop over them, no way to pass them all to a function conveniently, and adding a 101st student requires editing dozens of lines. Arrays solve this by grouping elements of the same type under one name, addressable by index. An array is not just a syntactic convenience — it is a <em>contiguous block of memory</em> where each element sits immediately after the previous one. This layout is the reason arrays are fast: iterating through them in order accesses memory sequentially, which is exactly what the CPU's cache is optimised for.",
+            explanation: "Consider tracking the exam scores of 100 students. Without arrays you'd need 100 separate variables — <code>score1</code>, <code>score2</code>, ..., <code>score100</code>. Every calculation would need to reference all 100 by name. You could never loop over them. Adding a 101st student would require editing dozens of lines. Arrays solve all of this by grouping values of the same type under one name, addressable by a numbered index. But an array is not just a syntactic grouping — it is a contiguous block of memory where each element sits physically adjacent to the previous one in RAM, with no gaps between them. This layout is not accidental. Sequential memory access is the single most cache-friendly pattern possible: the CPU prefetches the next elements automatically while you're processing the current one. That's why iterating through an array is among the fastest things C can do.",
             sections: [
                 {
                     title: "Declaration, Initialization, and Access",
@@ -426,7 +426,7 @@ int main() {
                 },
                 {
                     title: "Array Bounds",
-                    warning: "C does <strong>NOT</strong> check array boundaries. At all. Ever. If you declare <code>int arr[5]</code> and then access <code>arr[10]</code>, C will not crash immediately, throw an error, or even give you a warning. It will just go to that memory address — which belongs to something else entirely — and read whatever bytes happen to be there. Sometimes you get garbage data. Sometimes you corrupt other variables. Sometimes, in the worst cases, this becomes an exploitable security vulnerability. Always make absolutely sure your loops stop at the correct boundary. Off-by-one errors (going one index too far) are one of the most common bugs in C."
+                    warning: "C does <strong>NOT</strong> check array boundaries. At all. Ever. If you declare <code>int arr[5]</code> and access <code>arr[10]</code>, C goes to that memory address — which belongs to something else entirely — and reads or writes whatever bytes happen to be there. Sometimes you get garbage. Sometimes you silently corrupt another variable. Sometimes, in the worst case, an attacker crafts input that causes your out-of-bounds write to overwrite a return address and execute arbitrary code. This class of bug — the buffer overrun — has been behind some of the most devastating security vulnerabilities in software history. C gives you zero protection. The discipline must come from you: always verify your loop bounds, always track your array sizes, and always leave room for the terminator in character arrays."
                 },
                 {
                     title: "Passing Arrays to Functions",
@@ -474,7 +474,7 @@ int main() {
         {
             id: "strings",
             title: "Strings",
-            explanation: "In most modern languages, a string is a built-in object with its own type, automatic memory management, and built-in methods for copying, comparing, and searching. In C, none of that exists. A C string is a plain array of <code>char</code> that ends with a null byte (<code>'\\0'</code>, value zero). That null byte is the only thing that tells <code>printf</code>, <code>strlen</code>, and every other string function where the string ends — there is no length stored anywhere. This design is intentional: it is minimalist, it has zero overhead, and it maps directly to how processors handle character data. Understanding the null terminator is the key to understanding every C string function, every buffer overflow, and why C string handling requires such deliberate attention.",
+            explanation: "In Python, a string is a first-class object with a length property, automatic memory management, Unicode support, and dozens of built-in methods. In Java, strings are immutable objects backed by a JVM with garbage collection. In C, a string is a plain <code>char</code> array that ends with a null byte (<code>'\\0'</code>, numeric value zero). That's it. There is no length stored anywhere, no bounds tracking, no automatic resizing. The null byte is the only signal that marks where the string ends — every function that touches strings (printf, strlen, strcpy, strcmp) scans forward byte by byte until it hits a zero. This design has zero overhead and maps directly to hardware. It also means that forgetting the null terminator, or writing past it, produces bugs that range from garbled output to exploitable security vulnerabilities. C strings reward careful attention and punish inattention — there is no middle ground.",
             sections: [
                 {
                     title: "String Declaration and the Null Terminator",
