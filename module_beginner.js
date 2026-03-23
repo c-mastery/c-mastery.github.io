@@ -107,16 +107,16 @@ int main() {
     char name[] = "Alex";
 
     // snprintf writes into a buffer instead of to the screen
-    // The '64' is the maximum bytes to write (including null terminator)
-    snprintf(message, sizeof(message), "Player %s scored %d points!", name, score);
+    // Second argument: max bytes to write (including the final '\\0')
+    snprintf(message, 64, "Player %s scored %d points!", name, score);
 
     // Now 'message' holds the formatted string
     printf("%s\\n", message);
 
-    // Build a file path safely
+    // Build a file path safely (128 matches path[]'s size)
     char path[128];
-    int level = 3;
-    snprintf(path, sizeof(path), "/save/level_%02d.dat", level);
+    int level = 3;    
+    snprintf(path, 128, "/save/level_d.dat", level);
     printf("Save path: %s\\n", path);
 
     return 0;
@@ -518,7 +518,7 @@ int main() {
                     content: "When multiple operators appear in one expression, C evaluates them in a specific order determined by their precedence (which operators bind tighter) and associativity (which direction ties are broken). This is exactly like the order of operations in math: multiplication before addition, parentheses override everything. C has far more operators than math, so the hierarchy is longer — but the same principle applies. The single most important rule: when in doubt, use parentheses. They cost nothing in performance, make your intent unambiguous, and eliminate an entire class of subtle bugs.",
                     points: [
                         "<strong>Highest: <code>++</code> <code>--</code> (postfix), <code>()</code>, <code>[]</code></strong> — Function calls, array access, and postfix increment/decrement bind first.",
-                        "<strong>High: <code>++</code> <code>--</code> (prefix), <code>!</code>, unary <code>-</code>, <code>*</code> (dereference), <code>&</code>, <code>sizeof</code></strong> — Unary operators applied to a single operand.",
+                        "<strong>High: <code>++</code> <code>--</code> (prefix), <code>!</code>, unary <code>-</code>, <code>*</code> (dereference), <code>&</code></strong> — Unary operators applied to a single operand. (There is also <code>sizeof</code>, covered once you know how types occupy memory — it is unary and binds tightly.)",
                         "<strong>Medium-high: <code>*</code> <code>/</code> <code>%</code></strong> — Multiplication, division, modulus.",
                         "<strong>Medium: <code>+</code> <code>-</code></strong> — Addition and subtraction.",
                         "<strong>Medium-low: <code>&lt;</code> <code>&lt;=</code> <code>&gt;</code> <code>&gt;=</code></strong> — Comparison operators.",
@@ -565,7 +565,7 @@ int main() {
 
     // Basic if: runs the block only when condition is true
     if (temperature > 37) {
-        printf("Fever detected: %.0d degrees.\\n", temperature);
+        printf("Fever detected: %d degrees.\\n", temperature);
     }
 
     // The condition is just an integer expression — zero = false, non-zero = true
@@ -784,6 +784,18 @@ int main() {
             options: ["10", "16", "31", "1F"],
             answer: 2,
             explanation: "0x means hexadecimal. 0x1F = 1*16 + 15 = 31 in decimal."
+        },
+        {
+            question: "A cash register totals item prices in cents using int. Which risk is most real if thousands of items are summed?",
+            options: ["printf will truncate the display", "Integer overflow — int has a maximum value", "The CPU overheats", "float would be safer for money"],
+            answer: 1,
+            explanation: "Money in production often uses fixed-point integers, but you must watch overflow. float is usually wrong for currency because of rounding. Know your type limits."
+        },
+        {
+            question: "You compile with warnings enabled and see 'control reaches end of non-void function'. What is the compiler complaining about?",
+            options: ["You used void main()", "A function declared to return a value can fall off the end without returning one", "You forgot #include", "Your loop runs forever"],
+            answer: 1,
+            explanation: "If a function is declared int or another non-void type, every path must return a value. Falling through the closing brace without return is undefined behavior."
         }
     ],
     
@@ -879,6 +891,41 @@ int main() {
     printf("Hex:     0x%X\\n", n);
     printf("Octal:   0%o\\n", n);
     
+    return 0;
+}`
+        },
+        {
+            title: "Shipping cost tier",
+            difficulty: "medium",
+            problem: "Read a whole number of kilograms (integer). Shipping is $5 for the first kg (or any package up to 1 kg), and $2 for each additional kg. Example: 1 kg → $5, 2 kg → $7, 5 kg → $13. Print the total in dollars.",
+            hint: "If kg <= 1, cost is 5. Otherwise cost is 5 + 2 * (kg - 1). Validate that kg is positive.",
+            solution: `#include <stdio.h>
+
+int main(void) {
+    int kg;
+    printf("Package weight (whole kg): ");
+    if (scanf("%d", &kg) != 1 || kg < 1) {
+        printf("Invalid.\\n");
+        return 1;
+    }
+    int cost = (kg <= 1) ? 5 : 5 + 2 * (kg - 1);
+    printf("Shipping: $%d\\n", cost);
+    return 0;
+}`
+        },
+        {
+            title: "Clamp a sensor reading",
+            difficulty: "medium",
+            problem: "Read an integer 'reading'. Print the same value, but if it is below 0 print 0, and if it is above 100 print 100 (clamp to 0..100). Use conditionals, not loops.",
+            solution: `#include <stdio.h>
+
+int main(void) {
+    int r;
+    printf("Sensor reading: ");
+    scanf("%d", &r);
+    if (r < 0) r = 0;
+    if (r > 100) r = 100;
+    printf("Clamped: %d\\n", r);
     return 0;
 }`
         }

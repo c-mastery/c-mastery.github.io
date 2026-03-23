@@ -488,7 +488,8 @@ int main() {
 
     printf("String:  %s\\n", greeting);
     printf("Length:  %zu\\n", strlen(greeting));   // 5 — null not counted
-    printf("Storage: %zu\\n", sizeof(greeting));   // 6 — null IS counted
+    // Storage is 6 bytes: H e l l o \\0 — the null counts toward the array size
+    printf("Storage: 6 bytes (five letters + null terminator)\\n");
 
     // You can inspect individual characters including the null terminator
     printf("Chars: ");
@@ -512,7 +513,7 @@ int main() {
 
     return 0;
 }`,
-                    output: "String:  Hello\nLength:  5\nStorage: 6\nChars: 'H' 'e' 'l' 'l' 'o' '\\0'\nManual: World",
+                    output: "String:  Hello\nLength:  5\nStorage: 6 bytes (five letters + null terminator)\nChars: 'H' 'e' 'l' 'l' 'o' '\\0'\nManual: World",
                     warning: "Always allocate at least <code>strlen(s) + 1</code> bytes when copying a string — the +1 is for the null terminator. Forgetting it means the null byte overwrites memory just past your buffer, corrupting whatever lives there. This class of bug is called a buffer overflow and is the source of a significant fraction of real-world security vulnerabilities."
                 },
                 {
@@ -543,14 +544,14 @@ int main() {
 
     // SAFER alternatives: strncpy and strncat limit how many bytes are written
     char safe[10];
-    strncpy(safe, "This is a very long string", sizeof(safe) - 1);
-    safe[sizeof(safe) - 1] = '\\0';  // strncpy may not null-terminate!
+    strncpy(safe, "This is a very long string", 9);  // at most 9 chars; leave room for '\\0'
+    safe[9] = '\\0';  // strncpy may not null-terminate!
     printf("Safe copy: %s\\n", safe);   // "This is " — truncated, not overflowed
 
     return 0;
 }`,
                     output: "Length of src: 5\nCopied: Hello\nAfter strcat: Hello, World\nMatch!\napple < banana alphabetically\nSafe copy: This is ",
-                    warning: "<code>strcpy</code> and <code>strcat</code> will write past the end of the destination buffer if it is not large enough — no error, no warning, just silent memory corruption. Always use <code>strncpy(dest, src, sizeof(dest)-1)</code> and <code>strncat(dest, src, remaining_space)</code> in production code. Even better, use <code>snprintf(dest, sizeof(dest), \"%s\", src)</code> which always null-terminates."
+                    warning: "<code>strcpy</code> and <code>strcat</code> will write past the end of the destination buffer if it is not large enough — no error, no warning, just silent memory corruption. Always use <code>strncpy</code> with an explicit limit (one less than the buffer size) and force a null at the end, or use <code>strncat</code> with a computed remaining size. Even better, use <code>snprintf(dest, buffer_size, \"%s\", src)</code> which always null-terminates. Later in this module you will see the <code>sizeof</code> operator, which is the usual way to spell 'buffer size' without magic numbers."
                 },
                 {
                     title: "Character Classification with ctype.h",
@@ -622,7 +623,7 @@ int main() {
 
     // --- RIGHT: fgets — reads full line, respects buffer size ---
     printf("Enter your name: ");
-    fgets(name, sizeof(name), stdin);
+    fgets(name, 20, stdin);   // 20 == char name[20] — never more than the array size
 
     // fgets includes the trailing newline in the string — strip it
     int len = strlen(name);
@@ -650,9 +651,88 @@ int main() {
             ]
         },
         {
+            id: "strings-at-work",
+            title: "Strings at Work: Real Problems, Not Toy Examples",
+            explanation: "The previous lesson showed the mechanics: null terminators, <code>string.h</code>, and why <code>scanf</code> with <code>%s</code> alone is a loaded gun pointed at your foot. This lesson is about what you actually do with strings when you are not reading a textbook: build file paths, parse tokens, validate input, and handle the fact that users type whatever they want — including hostile nonsense. None of this is glamorous; all of it is what separates a script that works on your machine from software that survives contact with reality.",
+            sections: [
+                {
+                    title: "Why C strings are a contract, not a type",
+                    content: "In almost every other language, 'string' is a real thing with a length and rules. In C, a string is a convention: a <code>char</code> array with a null byte (<code>'\\0'</code>) somewhere before the end of the buffer. The compiler does not check that convention. You can pass a pointer to the middle of an array to <code>printf</code> with <code>%s</code> and it will happily print until it hits a zero — or until it runs off a cliff if there is no zero. That is not a feature. That is the job description. Your job is to maintain the contract everywhere: every copy leaves room for the terminator, every read respects the buffer size, and every function that produces text documents whether it null-terminates. Forget once, and you spend the afternoon debugging a Heisenbug that only manifests on Tuesdays.",
+                    points: [
+                        "<strong>Length vs capacity</strong>: <code>strlen</code> tells you how long the meaningful text is. The array size you declared is the cap — the two are unrelated unless you carefully keep them in sync.",
+                        "<strong>Truncation is not failure</strong>: <code>snprintf</code> truncating a path is often better than overflowing. A truncated path is visible; a smashed stack is not.",
+                        "<strong>Never trust external input</strong>: Assume every line is too long, every field is empty, and every character is wrong until you have checked it."
+                    ]
+                },
+                {
+                    title: "Building paths and messages safely",
+                    content: "You will constantly glue pieces together: directory + filename, host + port, user-visible error messages. The unsafe pattern is guessing how big the buffer 'should' be. The safe pattern is: pick a buffer size (here, <code>64</code> and <code>48</code> — spelled out as literals so you see the number), pass that same number to <code>snprintf</code> as the limit, and check the return value if truncation would be unacceptable. Right after this lesson, the Integer Types lesson introduces <code>sizeof</code>, which lets you tie the limit to the declaration without repeating yourself.",
+                    code: `#include <stdio.h>
+
+int main(void) {
+    char path[64];
+    const char *dir = "/var/log";
+    const char *file = "app.log";
+
+    // snprintf: max 64 bytes total including '\\0'
+    int n = snprintf(path, 64, "%s/%s", dir, file);
+    if (n < 0 || n >= 64) {
+        printf("Path did not fit — need more than 63 characters of text\\n");
+        return 1;
+    }
+    printf("Log path: %s\\n", path);
+
+    char msg[48];
+    int err = 404;
+    snprintf(msg, 48, "HTTP error %d: not found", err);
+    printf("%s\\n", msg);
+
+    return 0;
+}`,
+                    output: "Log path: /var/log/app.log\nHTTP error 404: not found",
+                    tip: "Once you know <code>sizeof</code>, you will write <code>snprintf(path, sizeof path, ...)</code> and sleep better. Until then, the literal <code>64</code> is honest: it is the same number you used in <code>char path[64]</code>."
+                },
+                {
+                    title: "Mini–case study: splitting a line into fields",
+                    content: "A CSV row, a config line <code>key=value</code>, or a log line with fixed columns — the pattern is the same: walk the string with an index, watch for delimiters, and never let an index walk past the buffer. Here is a deliberately small, boring parser: no <code>strtok</code> yet (that one has hidden state and surprises beginners); just loops and discipline.",
+                    code: `#include <stdio.h>
+
+// Return 1 if line looks like "name=score" with non-empty name and digits
+int parse_assignment(const char *line) {
+    int i = 0;
+    while (line[i] && line[i] != '=') i++;
+    if (i == 0 || line[i] != '=') return 0;
+    int j = i + 1;
+    if (line[j] == '\\0') return 0;
+    while (line[j]) {
+        if (line[j] < '0' || line[j] > '9') return 0;
+        j++;
+    }
+    return 1;
+}
+
+int main(void) {
+    const char *tests[] = {
+        "alice=42",
+        "=oops",
+        "bob=12x",
+        "carol=7"
+    };
+    for (int t = 0; t < 4; t++) {
+        printf("'%s' -> %s\\n", tests[t],
+               parse_assignment(tests[t]) ? "OK" : "BAD");
+    }
+    return 0;
+}`,
+                    output: "'alice=42' -> OK\n'=oops' -> BAD\n'bob=12x' -> BAD\n'carol=7' -> OK",
+                    warning: "Production parsers use dedicated libraries or lexer generators. This example is here to drill the habit: index bounds, explicit delimiters, and rejecting garbage early — the same habits that keep routers and parsers from becoming CVE factories."
+                }
+            ]
+        },
+        {
             id: "integer-types",
             title: "The Integer Type Family",
-            explanation: "So far the curriculum has used <code>int</code> for almost everything integer-shaped. But <code>int</code> is not a universal integer type — it is specifically a 32-bit signed integer on modern systems, which means it has a maximum value of about 2.1 billion and cannot represent negative values when declared <code>unsigned</code>. C's integer family covers a range of sizes and signedness variants because different problems genuinely need different types: a pixel colour component never needs to be larger than 255 or negative, so <code>uint8_t</code> is the right fit. A file offset on a 64-bit system can exceed 4 billion bytes, so <code>int64_t</code> is required. Using the right type is not pedantry — it prevents overflow bugs, communicates intent to the reader, and ensures correct behaviour when code runs on hardware you did not test on.",
+            explanation: "This is the lesson where <code>sizeof</code> finally gets a proper introduction: it is a compile-time operator that yields the size in bytes of a type or object. You already used raw numbers (like <code>64</code> for <code>char path[64]</code>) in the strings material — from here on you can write <code>sizeof path</code> instead and let the compiler keep those numbers consistent. So far the curriculum has used <code>int</code> for almost everything integer-shaped. But <code>int</code> is not a universal integer type — it is specifically a 32-bit signed integer on modern systems, which means it has a maximum value of about 2.1 billion and cannot represent negative values when declared <code>unsigned</code>. C's integer family covers a range of sizes and signedness variants because different problems genuinely need different types: a pixel colour component never needs to be larger than 255 or negative, so <code>uint8_t</code> is the right fit. A file offset on a 64-bit system can exceed 4 billion bytes, so <code>int64_t</code> is required. Using the right type is not pedantry — it prevents overflow bugs, communicates intent to the reader, and ensures correct behaviour when code runs on hardware you did not test on.",
             sections: [
                 {
                     title: "Size Variants: short, int, long, long long",
@@ -960,7 +1040,7 @@ int main() {
             question: "What is the output of: for(int i=0; i<3; i++) printf(\"*\");",
             options: ["***", "****", "**", "Error"],
             answer: 0,
-            explanation: "The loop runs for i=0,1,2, printing '0\\n1\\n2\\n'. The condition i<3 means it stops before i=3."
+            explanation: "The loop runs for i = 0, 1, and 2 (three iterations). Each iteration prints one asterisk, so the output is three stars with no newline unless you add one."
         },
         {
             question: "If you access array index out of bounds, what happens?",
@@ -985,6 +1065,24 @@ int main() {
             options: ["int", "long", "long long", "short"],
             answer: 2,
             explanation: "long long is 64 bits and holds values up to ~9.2 × 10^18. unsigned long long is even larger. int is only 32 bits."
+        },
+        {
+            question: "You need to read a full line of text that may contain spaces. What is the safer default than scanf(\"%s\", buf)?",
+            options: ["scanf(\"%c\", buf)", "fgets(buf, size, stdin)", "gets(buf)", "scanf(\"%99s\", buf) without ever checking the return value"],
+            answer: 1,
+            explanation: "fgets reads up to size-1 characters or until newline, always respects the buffer bound, and null-terminates. %s stops at whitespace. gets is removed from the language for a reason — never use it."
+        },
+        {
+            question: "Why is strncpy considered tricky compared to snprintf for copying into a fixed buffer?",
+            options: ["strncpy is slower", "strncpy may not null-terminate if the source is longer than the limit", "strncpy only works on Windows", "strncpy cannot copy ASCII"],
+            answer: 1,
+            explanation: "If the source string is longer than the limit you pass, strncpy pads with zeros but may leave the destination without a trailing null unless you force it. snprintf always null-terminates (within the size you give)."
+        },
+        {
+            question: "A vending machine accepts 50, 20, 10, and 5 cent coins. What loop pattern best fits 'keep accepting coins until the price is paid'?",
+            options: ["for with a fixed count of 4", "while that runs until the remaining balance reaches zero", "do-while that always runs once even if price is zero", "switch on the coin type with no loop"],
+            answer: 1,
+            explanation: "You do not know in advance how many coins the customer will insert — only that the running total should eventually reach the price. A while (or similar) that updates the balance is the natural model."
         }
     ],
     
@@ -1162,14 +1260,13 @@ int main(void) {
             code: `#include <stdio.h>
 #include <string.h>
 int main(void) {
-    char s[] = "Hello";
+    char s[] = "Hi";
     printf("%zu\\n", strlen(s));
-    printf("%zu\\n", sizeof(s));
     return 0;
 }`,
-            options: ["5 then 5", "5 then 6", "6 then 6", "5 then 4"],
+            options: ["1", "2", "3", "4"],
             answer: 1,
-            explanation: "strlen counts characters excluding the null terminator: 5. sizeof includes the null terminator: 6. This is a key distinction."
+            explanation: "strlen counts characters before the null terminator. \"Hi\" has two letters, so strlen returns 2. (The array also holds a third byte for '\\0', but strlen does not count that.)"
         },
         {
             question: "What is the output?",

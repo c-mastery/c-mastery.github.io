@@ -1409,6 +1409,18 @@ FLAG_HIGH   = 0x8000000000000000`,
             options: ["Makes a variable const", "Gives each thread its own copy of the variable", "Locks the variable for thread safety", "Moves the variable to the heap"],
             answer: 1,
             explanation: "_Thread_local gives each thread its own independent copy of the variable. Changes in one thread are invisible to others."
+        },
+        {
+            question: "You implement binary search on a sorted int array. Midpoint is `mid = (low + high) / 2`. What classic bug appears when `low` and `high` are large positive ints?",
+            options: ["Division by zero", "Integer overflow in `low + high` before the division", "strcmp returns wrong sign", "Undefined behavior from `%` on negatives"],
+            answer: 1,
+            explanation: "`low + high` can overflow signed int. The fix is `mid = low + (high - low) / 2`. Real bug, real interviews, real CVE-class mistakes in hand-rolled math."
+        },
+        {
+            question: "Why might row-major vs column-major iteration over a 2D array differ in speed on large data?",
+            options: ["The compiler forbids column-major", "Access order changes CPU cache locality — one order walks memory sequentially, the other jumps", "Only row-major is standard C", "printf is slower for columns"],
+            answer: 1,
+            explanation: "C lays out 2D arrays in row-major order. Iterating in the same order the memory is stored keeps cache lines hot; the opposite pattern can thrash the cache."
         }
     ],
     

@@ -342,6 +342,35 @@ function showView(viewName) {
     window.scrollTo(0, 0);
 }
 
+/** Mobile drawer: close overlay, restore scroll, sync menu button state */
+function closeMobileSidebar() {
+    const sidebarEl = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    if (sidebarEl) sidebarEl.classList.remove('open');
+    if (sidebarOverlay) {
+        sidebarOverlay.classList.remove('is-visible');
+        sidebarOverlay.setAttribute('aria-hidden', 'true');
+    }
+    document.body.style.overflow = '';
+    const menuBtn = document.getElementById('menuBtn');
+    if (menuBtn) menuBtn.setAttribute('aria-expanded', 'false');
+}
+
+function setMobileSidebarOpen(open) {
+    const sidebarEl = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    if (!sidebarEl) return;
+    sidebarEl.classList.toggle('open', open);
+    if (sidebarOverlay) {
+        sidebarOverlay.classList.toggle('is-visible', open);
+        sidebarOverlay.setAttribute('aria-hidden', open ? 'false' : 'true');
+    }
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    document.body.style.overflow = open && isMobile ? 'hidden' : '';
+    const menuBtn = document.getElementById('menuBtn');
+    if (menuBtn) menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+
 // ===== Lesson Rendering =====
 function renderLesson(moduleId, lessonId) {
     const module = ModuleRegistry[moduleId];
@@ -349,6 +378,8 @@ function renderLesson(moduleId, lessonId) {
     
     const lesson = module.lessons.find(l => l.id === lessonId);
     if (!lesson) return;
+
+    closeMobileSidebar();
     
     App.currentModule = moduleId;
     App.currentLesson = lessonId;
@@ -632,6 +663,8 @@ function updateLessonNav() {
 function renderPractice(moduleId) {
     const module = ModuleRegistry[moduleId];
     if (!module || !module.practice) return;
+
+    closeMobileSidebar();
     
     App.currentModule = moduleId;
     
@@ -703,6 +736,8 @@ function toggleSolution(btn) {
 function renderQuiz(moduleId) {
     const module = ModuleRegistry[moduleId];
     if (!module || !module.quiz) return;
+
+    closeMobileSidebar();
     
     App.currentModule = moduleId;
     App.currentQuiz = 0;
@@ -848,6 +883,8 @@ function submitQuiz() {
 function renderExam(moduleId) {
     const module = ModuleRegistry[moduleId];
     if (!module || !module.exam) return;
+
+    closeMobileSidebar();
     
     App.currentModule = moduleId;
     App.currentExam = 0;
@@ -1141,9 +1178,22 @@ function setupEventListeners() {
         document.getElementById('sidebar').classList.toggle('collapsed');
     });
     
+    const sidebarEl = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+
     // Mobile menu
     document.getElementById('menuBtn').addEventListener('click', () => {
-        document.getElementById('sidebar').classList.toggle('open');
+        setMobileSidebarOpen(!sidebarEl.classList.contains('open'));
+    });
+
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', () => closeMobileSidebar());
+    }
+
+    window.addEventListener('resize', () => {
+        if (!window.matchMedia('(max-width: 768px)').matches) {
+            closeMobileSidebar();
+        }
     });
     
     // Module headers
@@ -1173,7 +1223,7 @@ function setupEventListeners() {
             }
             
             // Close mobile sidebar
-            document.getElementById('sidebar').classList.remove('open');
+            closeMobileSidebar();
         }
     });
     
@@ -1287,10 +1337,17 @@ function setupEventListeners() {
     document.getElementById('runCode').addEventListener('click', runCode);
     document.getElementById('resetCode').addEventListener('click', resetCode);
 
-    // Close code modal on Escape key (mirrors the donate flyout behaviour)
+    // Escape: close code modal first, then mobile sidebar
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && !document.getElementById('codeModal').classList.contains('hidden')) {
-            document.getElementById('codeModal').classList.add('hidden');
+        if (e.key !== 'Escape') return;
+        const modal = document.getElementById('codeModal');
+        if (modal && !modal.classList.contains('hidden')) {
+            modal.classList.add('hidden');
+            return;
+        }
+        const sb = document.getElementById('sidebar');
+        if (sb && sb.classList.contains('open')) {
+            closeMobileSidebar();
         }
     });
     
@@ -1305,6 +1362,7 @@ function setupEventListeners() {
 }
 
 function showDashboard() {
+    closeMobileSidebar();
     App.currentModule = null;
     App.currentLesson = null;
     document.title = 'C Programming Mastery – Free Interactive C Tutorial (Beginner to C23)';

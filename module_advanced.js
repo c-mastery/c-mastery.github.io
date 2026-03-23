@@ -5,7 +5,7 @@ const ModuleAdvanced = {
         {
             id: "structs",
             title: "Structures (Grouping Data)",
-            explanation: "Once programs move beyond simple calculations, they deal with entities that have multiple related attributes: a student has a name, an ID, and a GPA. A network packet has source and destination addresses, a sequence number, flags, and a payload. A 3D game object has a position, velocity, rotation, health, and a mesh reference. Managing these with separate variables — <code>name1</code>, <code>age1</code>, <code>gpa1</code>, <code>name2</code>, <code>age2</code>, <code>gpa2</code> — collapses immediately when you have more than two instances. A <code>struct</code> bundles related data of different types into one named unit. This changes how you think about the problem: instead of managing 30 separate variables, you manage 10 students. You pass one <code>struct Student</code> to a function instead of three arguments. You make an array of structs to get an array of objects. Structs are the foundation of every serious data structure in C — linked lists, trees, hash tables, and every custom type that represents a real-world entity are all built on structs.",
+            explanation: "The keyword <code>struct</code> is short for <em>structure</em> — not as in 'skyscraper', but as in 'structured record': a bunch of related fields packaged under one type name. Once programs move beyond simple calculations, they deal with entities that have multiple related attributes: a student has a name, an ID, and a GPA. A network packet has source and destination addresses, a sequence number, flags, and a payload. A 3D game object has a position, velocity, rotation, health, and a mesh reference. Managing these with separate variables — <code>name1</code>, <code>age1</code>, <code>gpa1</code>, <code>name2</code>, <code>age2</code>, <code>gpa2</code> — collapses immediately when you have more than two instances. A <code>struct</code> bundles related data of different types into one named unit. This changes how you think about the problem: instead of managing 30 separate variables, you manage 10 students. You pass one <code>struct Student</code> to a function instead of three arguments. You make an array of structs to get an array of objects. Structs are the foundation of every serious data structure in C — linked lists, trees, hash tables, and every custom type that represents a real-world entity are all built on structs.",
             sections: [
                 {
                     title: "Concept: The Blueprint",
@@ -122,6 +122,41 @@ int main() {
 }`,
                     output: "p1: (3, 4)\np2: (3, 4)\nAfter p2.x = 99:\np1.x = 3\np2.x = 99\np1 == p3: 1",
                     warning: "The shallow copy behavior of struct assignment is a common source of bugs. If your struct contains a <code>char*</code> pointer (not a char array), the assignment copies the pointer — both structs now point to the same string. Modifying or freeing the string through one struct affects the other. When structs contain pointers to heap memory, you need a custom deep-copy function."
+                },
+                {
+                    title: "Returning structs from functions (by value)",
+                    content: "You already pass structs into functions by value — the compiler copies the whole thing into the callee's stack frame. You can also <em>return</em> a struct by value: the function builds a complete struct and hands a copy back to the caller through the return mechanism. That matters for small POD (plain old data) structs like points, rectangles, timestamps, and result bundles. For huge structs, copying both ways can hurt performance — then you pass and return pointers instead — but for modest sizes, return-by-value is clear and correct. The compiler may even avoid real copies (return value optimization), but you write it as if a copy happened.",
+                    code: `#include <stdio.h>
+
+struct Point {
+    int x;
+    int y;
+};
+
+struct Point make_point(int x, int y) {
+    struct Point p;
+    p.x = x;
+    p.y = y;
+    return p;   /* caller receives a copy of p */
+}
+
+struct Point add_points(struct Point a, struct Point b) {
+    struct Point r = { a.x + b.x, a.y + b.y };
+    return r;
+}
+
+int main(void) {
+    struct Point origin = make_point(0, 0);
+    struct Point a = make_point(3, 4);
+    struct Point b = add_points(origin, a);
+
+    printf("origin: (%d, %d)\\n", origin.x, origin.y);
+    printf("a:      (%d, %d)\\n", a.x, a.y);
+    printf("sum:    (%d, %d)\\n", b.x, b.y);
+    return 0;
+}`,
+                    output: "origin: (0, 0)\na:      (3, 4)\nsum:    (3, 4)",
+                    tip: "If you need to signal failure, a common pattern is a struct plus a separate status code, or wrap the payload in a struct with a <code>bool ok</code> field — C has no exceptions, so 'return an error struct' is idiomatic."
                 },
                 {
                     title: "Structures and Pointers",

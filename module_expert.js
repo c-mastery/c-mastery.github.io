@@ -259,7 +259,7 @@ int main(void) {
     
     return 0;
 }`,
-                    output: "Unix timestamp: 1735689600\nYear:  2025\nMonth: 1\nDay:   1\nHour:  12\nMin:   0\nUTC hour: 7"
+                    output: "Unix timestamp: 1767225600\nYear:  2026\nMonth: 1\nDay:   1\nHour:  12\nMin:   0\nUTC hour: 7"
                 },
                 {
                     title: "Formatting Dates: strftime",
@@ -273,17 +273,17 @@ int main(void) {
     char buf[100];
     
     strftime(buf, sizeof(buf), "%A, %B %d, %Y", t);
-    printf("%s\\n", buf);    // Wednesday, January 01, 2025
+    printf("%s\\n", buf);    // Wednesday, January 01, 2026
     
     strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", t);
-    printf("%s\\n", buf);    // 2025-01-01 12:00:00
+    printf("%s\\n", buf);    // 2026-01-01 12:00:00
     
     strftime(buf, sizeof(buf), "%I:%M %p", t);
     printf("%s\\n", buf);    // 12:00 PM
     
     return 0;
 }`,
-                    output: "Wednesday, January 01, 2025\n2025-01-01 12:00:00\n12:00 PM",
+                    output: "Wednesday, January 01, 2026\n2026-01-01 12:00:00\n12:00 PM",
                     tip: "Common format codes: <code>%Y</code> 4-digit year, <code>%m</code> month (01–12), <code>%d</code> day (01–31), <code>%H</code> hour 24h (00–23), <code>%I</code> hour 12h (01–12), <code>%M</code> minute, <code>%S</code> second, <code>%A</code> full weekday name, <code>%B</code> full month name, <code>%p</code> AM/PM."
                 },
                 {
